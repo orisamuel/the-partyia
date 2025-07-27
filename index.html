@@ -708,16 +708,38 @@
             function enterResidenceMode(type, placeholder, btn) {
                 resetAllButtons();
                 btn.classList.add('active');
-                btn.textContent = 'חזור לרשימה';
+                btn.textContent = '✓ נבחר: ' + type;
                 
                 nameInput.placeholder = placeholder;
                 nameInput.readOnly = false;
-                nameInput.value = '';
+                // לא למחוק את השם שהוקלד! nameInput.value = '';
                 autocompleteList.style.display = 'none';
                 isGuestMode = true;
                 currentResidenceType = type;
                 isValidSelection = true;
                 hideValidationMessage();
+                
+                // הוספת הודעת בחירה
+                const existingMsg = document.getElementById('active-residence-msg');
+                if (existingMsg) existingMsg.remove();
+                
+                const message = document.createElement('div');
+                message.id = 'active-residence-msg';
+                message.style.cssText = `
+                    background: #e7f3ff;
+                    border: 1px solid #007bff;
+                    border-radius: 8px;
+                    padding: 8px 12px;
+                    margin-top: 8px;
+                    font-size: 13px;
+                    color: #004085;
+                    text-align: center;
+                `;
+                message.textContent = `נבחר: ${type} • לחץ שוב כדי לחזור לרשימה`;
+                
+                const guestToggle = document.querySelector('.guest-toggle');
+                guestToggle.appendChild(message);
+                
                 nameInput.focus();
                 updateSubmitButton();
             }
@@ -732,6 +754,8 @@
                 currentResidenceType = '';
                 isValidSelection = false;
                 hideValidationMessage();
+                const existingMsg = document.getElementById('active-residence-msg');
+                if (existingMsg) existingMsg.remove(); // הסרת ההודעה
                 updateSubmitButton();
             }
             
@@ -793,11 +817,19 @@
                     return;
                 }
                 
-                // סינון תושבים לפי השם או הכינוי
-                const matches = RESIDENTS.filter(resident => 
-                    resident.fullName.toLowerCase().includes(query) ||
-                    resident.nickname.toLowerCase().includes(query)
-                );
+                // סינון תושבים לפי השם או הכינוי - חיפוש גמיש
+                const queryWords = query.split(' ').filter(word => word.length > 0);
+                
+                const matches = RESIDENTS.filter(resident => {
+                    const fullNameLower = resident.fullName.toLowerCase();
+                    const nicknameLower = (resident.nickname || '').toLowerCase();
+                    
+                    // בדיקה אם כל המילים שהוקלדו נמצאות בשם המלא או בכינוי
+                    const fullNameMatches = queryWords.every(word => fullNameLower.includes(word));
+                    const nicknameMatches = queryWords.every(word => nicknameLower.includes(word));
+                    
+                    return fullNameMatches || nicknameMatches;
+                });
                 
                 if (matches.length === 0) {
                     autocompleteList.style.display = 'none';
@@ -1139,6 +1171,10 @@
             guestBtn.textContent = 'תושב נופי פרת שאינו ברשימה';
             kfarAdumimBtn.textContent = 'כפר אדומים';
             alonBtn.textContent = 'אלון';
+            
+            // הסרת הודעת הבחירה
+            const existingMsg = document.getElementById('active-residence-msg');
+            if (existingMsg) existingMsg.remove();
             
             nameInput.readOnly = true;
             nameInput.placeholder = 'בחר שם מהרשימה...';
