@@ -149,17 +149,22 @@
         
         .guest-toggle {
             margin-top: 10px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
         }
         
         .guest-btn {
             background: #6c757d;
             color: white;
             border: none;
-            padding: 8px 15px;
+            padding: 8px 12px;
             border-radius: 15px;
-            font-size: 14px;
+            font-size: 13px;
             cursor: pointer;
             transition: all 0.3s;
+            flex: 1;
+            min-width: 120px;
         }
         
         .guest-btn:hover {
@@ -168,6 +173,30 @@
         
         .guest-btn.active {
             background: #E67E22;
+        }
+        
+        .kfar-btn {
+            background: #28a745;
+        }
+        
+        .kfar-btn:hover {
+            background: #218838;
+        }
+        
+        .kfar-btn.active {
+            background: #1e7e34;
+        }
+        
+        .alon-btn {
+            background: #17a2b8;
+        }
+        
+        .alon-btn:hover {
+            background: #138496;
+        }
+        
+        .alon-btn.active {
+            background: #117a8b;
         }
         
         /* עיצוב מוצרים - גריד קבוע */
@@ -388,6 +417,17 @@
                 gap: 15px;
             }
             
+            .guest-toggle {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .guest-btn {
+                min-width: auto;
+                font-size: 12px;
+                padding: 8px 10px;
+            }
+            
             .header {
                 flex-direction: column;
                 gap: 15px;
@@ -426,6 +466,11 @@
                 padding: 15px 8px;
                 font-size: 13px;
             }
+            
+            .guest-btn {
+                font-size: 11px;
+                padding: 6px 8px;
+            }
         }
     </style>
 </head>
@@ -449,7 +494,9 @@
                                 <div class="autocomplete-list" id="autocompleteList"></div>
                             </div>
                             <div class="guest-toggle">
-                                <button type="button" id="guestBtn" class="guest-btn">אורח / לא ברשימה</button>
+                                <button type="button" id="guestBtn" class="guest-btn">תושב נופי פרת שאינו ברשימה</button>
+                                <button type="button" id="kfarAdumimBtn" class="guest-btn kfar-btn">כפר אדומים</button>
+                                <button type="button" id="alonBtn" class="guest-btn alon-btn">אלון</button>
                             </div>
                             <div class="name-validation-msg" id="nameValidationMsg" style="display: none; color: #dc3545; font-size: 14px; margin-top: 5px;"></div>
                         </div>
@@ -538,6 +585,7 @@
         let isGuestMode = false;
         let selectedAutocompleteIndex = -1;
         let isValidSelection = false; // האם נבחר שם תקין
+        let currentResidenceType = ''; // סוג התושב הנוכחי
         
         // טעינת נתונים מהדאטה בייס
         async function loadData() {
@@ -641,45 +689,95 @@
             const nameInput = document.getElementById('customerName');
             const autocompleteList = document.getElementById('autocompleteList');
             const guestBtn = document.getElementById('guestBtn');
+            const kfarAdumimBtn = document.getElementById('kfarAdumimBtn');
+            const alonBtn = document.getElementById('alonBtn');
             const validationMsg = document.getElementById('nameValidationMsg');
             
-            // כפתור אורח
-            guestBtn.addEventListener('click', () => {
-                isGuestMode = !isGuestMode;
-                if (isGuestMode) {
-                    guestBtn.classList.add('active');
-                    guestBtn.textContent = 'חזור לרשימת תושבים';
-                    nameInput.placeholder = 'הקלד שם אורח...';
-                    nameInput.readOnly = false;
-                    nameInput.value = '';
-                    autocompleteList.style.display = 'none';
-                    isValidSelection = true; // במצב אורח - כל דבר תקין
-                    hideValidationMessage();
-                    nameInput.focus();
-                } else {
-                    guestBtn.classList.remove('active');
-                    guestBtn.textContent = 'אורח / לא ברשימה';
-                    nameInput.placeholder = 'בחר שם מהרשימה...';
-                    nameInput.readOnly = true;
-                    nameInput.value = '';
-                    isValidSelection = false;
-                    hideValidationMessage();
-                }
+            // פונקציה לאיפוס כל הכפתורים
+            function resetAllButtons() {
+                [guestBtn, kfarAdumimBtn, alonBtn].forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                // החזרת הטקסטים המקוריים
+                guestBtn.textContent = 'תושב נופי פרת שאינו ברשימה';
+                kfarAdumimBtn.textContent = 'כפר אדומים';
+                alonBtn.textContent = 'אלון';
+            }
+            
+            // פונקציה לעבור למצב הקלדה עם סוג תושב
+            function enterResidenceMode(type, placeholder, btn) {
+                resetAllButtons();
+                btn.classList.add('active');
+                btn.textContent = 'חזור לרשימה';
+                
+                nameInput.placeholder = placeholder;
+                nameInput.readOnly = false;
+                nameInput.value = '';
+                autocompleteList.style.display = 'none';
+                isGuestMode = true;
+                currentResidenceType = type;
+                isValidSelection = true;
+                hideValidationMessage();
+                nameInput.focus();
                 updateSubmitButton();
+            }
+            
+            // פונקציה לחזור למצב רשימה
+            function returnToListMode() {
+                resetAllButtons();
+                nameInput.placeholder = 'בחר שם מהרשימה...';
+                nameInput.readOnly = true;
+                nameInput.value = '';
+                isGuestMode = false;
+                currentResidenceType = '';
+                isValidSelection = false;
+                hideValidationMessage();
+                updateSubmitButton();
+            }
+            
+            // כפתור תושב נופי פרת שאינו ברשימה
+            guestBtn.addEventListener('click', () => {
+                if (isGuestMode && currentResidenceType === 'נופי פרת לא ברשימה') {
+                    returnToListMode();
+                } else {
+                    enterResidenceMode('נופי פרת לא ברשימה', 'הקלד שם תושב נופי פרת...', guestBtn);
+                }
             });
             
-            // פתיחת שדה לחיפוש
-            nameInput.addEventListener('focus', (e) => {
+            // כפתור כפר אדומים
+            kfarAdumimBtn.addEventListener('click', () => {
+                if (isGuestMode && currentResidenceType === 'כפר אדומים') {
+                    returnToListMode();
+                } else {
+                    enterResidenceMode('כפר אדומים', 'הקלד שם תושב כפר אדומים...', kfarAdumimBtn);
+                }
+            });
+            
+            // כפתור אלון
+            alonBtn.addEventListener('click', () => {
+                if (isGuestMode && currentResidenceType === 'אלון') {
+                    returnToListMode();
+                } else {
+                    enterResidenceMode('אלון', 'הקלד שם תושב אלון...', alonBtn);
+                }
+            });
+            
+            // פתיחת שדה לחיפוש - גם על לחיצה וגם על focus
+            const enableSearchMode = () => {
                 if (!isGuestMode) {
                     nameInput.readOnly = false;
                     nameInput.placeholder = 'הקלד לחיפוש...';
+                    nameInput.focus();
                 }
-            });
+            };
+            
+            nameInput.addEventListener('focus', enableSearchMode);
+            nameInput.addEventListener('click', enableSearchMode);
             
             // Autocomplete
             nameInput.addEventListener('input', (e) => {
                 if (isGuestMode) {
-                    isValidSelection = true; // במצב אורח - תמיד תקין
+                    isValidSelection = true; // במצב תושב חיצוני - תמיד תקין
                     updateSubmitButton();
                     return;
                 }
@@ -690,7 +788,7 @@
                 if (query.length < 1) {
                     autocompleteList.style.display = 'none';
                     selectedAutocompleteIndex = -1;
-                    showValidationMessage('בחר שם מהרשימה או לחץ על "אורח"');
+                    showValidationMessage('בחר שם מהרשימה או לחץ על אחד מהכפתורים');
                     updateSubmitButton();
                     return;
                 }
@@ -703,7 +801,7 @@
                 
                 if (matches.length === 0) {
                     autocompleteList.style.display = 'none';
-                    showValidationMessage('לא נמצא שם ברשימה - בחר שם אחר או לחץ על "אורח"');
+                    showValidationMessage('לא נמצא שם ברשימה - בחר שם אחר או לחץ על אחד מהכפתורים');
                     updateSubmitButton();
                     return;
                 }
@@ -731,7 +829,7 @@
                 updateSubmitButton();
             });
             
-            // פונקציה לבחירת תושב
+            // פונקציה לבחירת תושב מהרשימה
             function selectResident(resident) {
                 nameInput.value = resident.fullName;
                 nameInput.readOnly = true;
@@ -739,6 +837,7 @@
                 autocompleteList.style.display = 'none';
                 selectedAutocompleteIndex = -1;
                 isValidSelection = true;
+                currentResidenceType = ''; // תושב מהרשימה - אין צורך בהערה
                 hideValidationMessage();
                 updateSubmitButton();
             }
@@ -884,7 +983,8 @@
                     customerName: orderData.name,
                     products: orderData.products,
                     total: orderData.total,
-                    timestamp: orderData.timestamp
+                    timestamp: orderData.timestamp,
+                    residenceType: orderData.residenceType || '' // הוספת סוג תושב
                 });
                 
                 const urlWithParams = `${GOOGLE_SCRIPT_URL}?${params.toString()}`;
@@ -969,7 +1069,8 @@
                 name: customerName,
                 products: productsList.join(', '),
                 total: total,
-                timestamp: new Date().toLocaleString('he-IL')
+                timestamp: new Date().toLocaleString('he-IL'),
+                residenceType: currentResidenceType // הוספת סוג התושב
             };
             
             recentOrders.push(newOrder);
@@ -1015,6 +1116,8 @@
         function resetForm() {
             const nameInput = document.getElementById('customerName');
             const guestBtn = document.getElementById('guestBtn');
+            const kfarAdumimBtn = document.getElementById('kfarAdumimBtn');
+            const alonBtn = document.getElementById('alonBtn');
             const validationMsg = document.getElementById('nameValidationMsg');
             
             // איפוס שדות
@@ -1030,11 +1133,17 @@
             selectedItems = {};
             
             // איפוס מצב שם
-            if (isGuestMode) {
-                guestBtn.click(); // החזרה למצב רגיל
-            }
+            [guestBtn, kfarAdumimBtn, alonBtn].forEach(btn => {
+                btn.classList.remove('active');
+            });
+            guestBtn.textContent = 'תושב נופי פרת שאינו ברשימה';
+            kfarAdumimBtn.textContent = 'כפר אדומים';
+            alonBtn.textContent = 'אלון';
+            
             nameInput.readOnly = true;
             nameInput.placeholder = 'בחר שם מהרשימה...';
+            isGuestMode = false;
+            currentResidenceType = '';
             isValidSelection = false;
             validationMsg.style.display = 'none';
             
@@ -1051,6 +1160,7 @@
             selectedItems = {};
             recentOrders = JSON.parse(localStorage.getItem('recentOrders') || '[]');
             isValidSelection = false; // התחלה עם אימות לא תקין
+            currentResidenceType = ''; // התחלה ללא סוג תושב
             
             // טעינת נתונים מדאטה בייס
             await loadData();
