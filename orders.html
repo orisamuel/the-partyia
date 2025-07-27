@@ -584,28 +584,61 @@
             `;
         }
         
-        // פונקציה לבדיקה אם תאריך הוא מהיום
-        function isToday(dateStr) {
-            if (!dateStr) return false;
+        // פונקציה לבדיקה אם הזמנה רלוונטית (מהיום או מהשעה הקודמת)
+        function isRelevantTime(dateStr, timeStr) {
+            if (!dateStr || !timeStr) return false;
             
-            const today = new Date();
-            const todayStr = cleanDate(today.toDateString());
-            const orderDateStr = cleanDate(dateStr);
+            const now = new Date();
+            const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000); // שעה אחורה
             
-            // דיבוג
-            console.log('בודק תאריך:', dateStr);
-            console.log('תאריך מנוקה:', orderDateStr);
-            console.log('היום:', todayStr);
-            console.log('תאריך של היום:', today.getDate(), today.getMonth() + 1, today.getFullYear());
+            // ניקוי תאריך ושעה
+            const cleanedDate = cleanDate(dateStr);
+            const cleanedTime = cleanTime(timeStr);
             
-            // השוואה פשוטה של התאריכים
-            const isFromToday = orderDateStr.includes(today.getDate().toString()) && 
-                   orderDateStr.includes((today.getMonth() + 1).toString()) &&
-                   orderDateStr.includes(today.getFullYear().toString());
+            console.log('בודק רלוונטיות:', cleanedDate, cleanedTime);
             
-            console.log('האם מהיום:', isFromToday);
-            
-            return isFromToday;
+            try {
+                // פרסור התאריך והשעה של ההזמנה
+                const dateMatch = cleanedDate.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+                const timeMatch = cleanedTime.match(/(\d{1,2}):(\d{2})/);
+                
+                if (!dateMatch || !timeMatch) {
+                    console.log('לא הצלחתי לפרסר:', cleanedDate, cleanedTime);
+                    return false;
+                }
+                
+                const [, day, month, year] = dateMatch;
+                const [, hour, minute] = timeMatch;
+                
+                // יצירת תאריך של ההזמנה
+                const orderDate = new Date(
+                    parseInt(year),
+                    parseInt(month) - 1, // חודשים מתחילים מ-0
+                    parseInt(day),
+                    parseInt(hour),
+                    parseInt(minute)
+                );
+                
+                console.log('תאריך הזמנה:', orderDate);
+                console.log('שעה אחורה:', oneHourAgo);
+                console.log('עכשיו:', now);
+                
+                // בדיקה אם ההזמנה היא:
+                // 1. מהיום הנוכחי (כל שעה)
+                const isToday = orderDate.toDateString() === now.toDateString();
+                
+                // 2. או מהשעה הקודמת (גם מאתמול)
+                const isFromLastHour = orderDate >= oneHourAgo && orderDate <= now;
+                
+                const isRelevant = isToday || isFromLastHour;
+                console.log('האם רלוונטי:', isRelevant, '(היום:', isToday, ', שעה קודמת:', isFromLastHour, ')');
+                
+                return isRelevant;
+                
+            } catch (error) {
+                console.error('שגיאה בבדיקת זמן:', error);
+                return false;
+            }
         }
         
         // פונקציה לניקוי תאריך
@@ -669,30 +702,30 @@
                 return;
             }
             
-            // פילטור פריטים מהיום בלבד
-            console.log('=== מתחיל פילטור תאריכים ===');
+            // פילטור פריטים רלוונטיים (מהיום או מהשעה הקודמת)
+            console.log('=== מתחיל פילטור זמנים ===');
             console.log('סה"כ פריטים לפני פילטור:', orders.length);
             
             if (orders.length > 0) {
-                console.log('דוגמה לתאריך:', orders[0].date);
-                console.log('בדיקת isToday לדוגמה:', isToday(orders[0].date));
+                console.log('דוגמה לתאריך ושעה:', orders[0].date, orders[0].time);
+                console.log('בדיקת isRelevantTime לדוגמה:', isRelevantTime(orders[0].date, orders[0].time));
             }
             
-            const todayItems = orders.filter(item => {
-                const result = isToday(item.date);
+            const relevantItems = orders.filter(item => {
+                const result = isRelevantTime(item.date, item.time);
                 if (!result) {
-                    console.log('מסנן פריט:', item.customerName, item.date);
+                    console.log('מסנן פריט:', item.customerName, item.date, item.time);
                 }
                 return result;
             });
             
-            console.log('פריטים אחרי פילטור:', todayItems.length);
+            console.log('פריטים אחרי פילטור:', relevantItems.length);
             
-            if (todayItems.length === 0) {
+            if (relevantItems.length === 0) {
                 container.innerHTML = `
                     <div class="empty-state">
-                        <h3>אין הזמנות מהיום</h3>
-                        <p>הזמנות מהיום יופיעו כאן אוטומטית</p>
+                        <h3>אין הזמנות רלוונטיות</h3>
+                        <p>הזמנות מהיום או מהשעה הקודמת יופיעו כאן אוטומטית</p>
                     </div>
                 `;
                 return;
@@ -710,7 +743,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        ${todayItems.map(item => createOrderRow(item)).join('')}
+                        ${relevantItems.map(item => createOrderRow(item)).join('')}
                     </tbody>
                 </table>
             `;
