@@ -105,6 +105,12 @@
             border-color: #E67E22;
         }
         
+        input[type="text"]:read-only {
+            background-color: #f8f9fa;
+            color: #6c757d;
+            cursor: pointer;
+        }
+        
         /* סגנון לAutocomplete */
         .name-input-container {
             position: relative;
@@ -164,10 +170,10 @@
             background: #E67E22;
         }
         
-        /* עיצוב מוצרים - גריד דינמי */
+        /* עיצוב מוצרים - גריד קבוע */
         .products-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            grid-template-columns: repeat(4, 1fr); /* 4 עמודות בדסקטופ */
             gap: 20px;
             margin-bottom: 30px;
         }
@@ -378,7 +384,7 @@
             }
             
             .products-grid {
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: repeat(3, 1fr); /* 3 עמודות בטאבלט */
                 gap: 15px;
             }
             
@@ -439,12 +445,13 @@
                         <div class="form-group">
                             <label for="customerName">שם המזמין:</label>
                             <div class="name-input-container">
-                                <input type="text" id="customerName" name="customerName" required placeholder="הקלד שם...">
+                                <input type="text" id="customerName" name="customerName" required placeholder="בחר שם מהרשימה..." readonly>
                                 <div class="autocomplete-list" id="autocompleteList"></div>
                             </div>
                             <div class="guest-toggle">
                                 <button type="button" id="guestBtn" class="guest-btn">אורח / לא ברשימה</button>
                             </div>
+                            <div class="name-validation-msg" id="nameValidationMsg" style="display: none; color: #dc3545; font-size: 14px; margin-top: 5px;"></div>
                         </div>
                         
                         <div class="form-group">
@@ -530,6 +537,7 @@
         let recentOrders = [];
         let isGuestMode = false;
         let selectedAutocompleteIndex = -1;
+        let isValidSelection = false; // האם נבחר שם תקין
         
         // טעינת נתונים מהדאטה בייס
         async function loadData() {
@@ -633,6 +641,7 @@
             const nameInput = document.getElementById('customerName');
             const autocompleteList = document.getElementById('autocompleteList');
             const guestBtn = document.getElementById('guestBtn');
+            const validationMsg = document.getElementById('nameValidationMsg');
             
             // כפתור אורח
             guestBtn.addEventListener('click', () => {
@@ -641,26 +650,48 @@
                     guestBtn.classList.add('active');
                     guestBtn.textContent = 'חזור לרשימת תושבים';
                     nameInput.placeholder = 'הקלד שם אורח...';
+                    nameInput.readOnly = false;
+                    nameInput.value = '';
                     autocompleteList.style.display = 'none';
+                    isValidSelection = true; // במצב אורח - כל דבר תקין
+                    hideValidationMessage();
                     nameInput.focus();
                 } else {
                     guestBtn.classList.remove('active');
                     guestBtn.textContent = 'אורח / לא ברשימה';
-                    nameInput.placeholder = 'הקלד שם...';
+                    nameInput.placeholder = 'בחר שם מהרשימה...';
+                    nameInput.readOnly = true;
                     nameInput.value = '';
+                    isValidSelection = false;
+                    hideValidationMessage();
                 }
                 updateSubmitButton();
             });
             
+            // פתיחת שדה לחיפוש
+            nameInput.addEventListener('focus', (e) => {
+                if (!isGuestMode) {
+                    nameInput.readOnly = false;
+                    nameInput.placeholder = 'הקלד לחיפוש...';
+                }
+            });
+            
             // Autocomplete
             nameInput.addEventListener('input', (e) => {
-                if (isGuestMode) return; // לא מציגים autocomplete במצב אורח
+                if (isGuestMode) {
+                    isValidSelection = true; // במצב אורח - תמיד תקין
+                    updateSubmitButton();
+                    return;
+                }
                 
                 const query = e.target.value.toLowerCase().trim();
+                isValidSelection = false; // איפוס - עד שיבחרו מהרשימה
                 
                 if (query.length < 1) {
                     autocompleteList.style.display = 'none';
                     selectedAutocompleteIndex = -1;
+                    showValidationMessage('בחר שם מהרשימה או לחץ על "אורח"');
+                    updateSubmitButton();
                     return;
                 }
                 
@@ -672,8 +703,12 @@
                 
                 if (matches.length === 0) {
                     autocompleteList.style.display = 'none';
+                    showValidationMessage('לא נמצא שם ברשימה - בחר שם אחר או לחץ על "אורח"');
+                    updateSubmitButton();
                     return;
                 }
+                
+                hideValidationMessage();
                 
                 // יצירת רשימת הצעות
                 autocompleteList.innerHTML = matches.map((resident, index) => 
@@ -689,13 +724,34 @@
                 // הוספת Event listeners לפריטים
                 document.querySelectorAll('.autocomplete-item').forEach((item, index) => {
                     item.addEventListener('click', () => {
-                        nameInput.value = matches[index].fullName;
-                        autocompleteList.style.display = 'none';
-                        selectedAutocompleteIndex = -1;
-                        updateSubmitButton();
+                        selectResident(matches[index]);
                     });
                 });
+                
+                updateSubmitButton();
             });
+            
+            // פונקציה לבחירת תושב
+            function selectResident(resident) {
+                nameInput.value = resident.fullName;
+                nameInput.readOnly = true;
+                nameInput.placeholder = 'בחר שם מהרשימה...';
+                autocompleteList.style.display = 'none';
+                selectedAutocompleteIndex = -1;
+                isValidSelection = true;
+                hideValidationMessage();
+                updateSubmitButton();
+            }
+            
+            // פונקציות להצגת הודעות
+            function showValidationMessage(message) {
+                validationMsg.textContent = message;
+                validationMsg.style.display = 'block';
+            }
+            
+            function hideValidationMessage() {
+                validationMsg.style.display = 'none';
+            }
             
             // ניווט עם מקלדת
             nameInput.addEventListener('keydown', (e) => {
@@ -718,6 +774,9 @@
                 } else if (e.key === 'Escape') {
                     autocompleteList.style.display = 'none';
                     selectedAutocompleteIndex = -1;
+                    nameInput.blur();
+                    nameInput.readOnly = true;
+                    nameInput.placeholder = 'בחר שם מהרשימה...';
                 }
             });
             
@@ -726,6 +785,10 @@
                 if (!nameInput.contains(e.target) && !autocompleteList.contains(e.target)) {
                     autocompleteList.style.display = 'none';
                     selectedAutocompleteIndex = -1;
+                    if (!isGuestMode && !isValidSelection) {
+                        nameInput.readOnly = true;
+                        nameInput.placeholder = 'בחר שם מהרשימה...';
+                    }
                 }
             });
         }
@@ -793,7 +856,10 @@
             const submitBtn = document.getElementById('submitBtn');
             const customerName = document.getElementById('customerName').value.trim();
             
-            submitBtn.disabled = !customerName;
+            // הכפתור יהיה פעיל רק אם:
+            // 1. יש שם
+            // 2. השם תקין (נבחר מהרשימה או במצב אורח)
+            submitBtn.disabled = !(customerName && isValidSelection);
         }
         
         function updateRecentOrders() {
@@ -947,7 +1013,12 @@
         }
         
         function resetForm() {
-            document.getElementById('customerName').value = '';
+            const nameInput = document.getElementById('customerName');
+            const guestBtn = document.getElementById('guestBtn');
+            const validationMsg = document.getElementById('nameValidationMsg');
+            
+            // איפוס שדות
+            nameInput.value = '';
             document.getElementById('customAmount').value = '';
             document.getElementById('customDescription').value = '';
             document.getElementById('customAmountDesktop').value = '';
@@ -958,11 +1029,14 @@
             document.getElementById('discountDescriptionDesktop').value = '';
             selectedItems = {};
             
-            // איפוס מצב אורח
+            // איפוס מצב שם
             if (isGuestMode) {
-                const guestBtn = document.getElementById('guestBtn');
                 guestBtn.click(); // החזרה למצב רגיל
             }
+            nameInput.readOnly = true;
+            nameInput.placeholder = 'בחר שם מהרשימה...';
+            isValidSelection = false;
+            validationMsg.style.display = 'none';
             
             document.querySelectorAll('.product-btn').forEach(btn => {
                 btn.classList.remove('selected');
@@ -976,6 +1050,7 @@
         document.addEventListener('DOMContentLoaded', async function() {
             selectedItems = {};
             recentOrders = JSON.parse(localStorage.getItem('recentOrders') || '[]');
+            isValidSelection = false; // התחלה עם אימות לא תקין
             
             // טעינת נתונים מדאטה בייס
             await loadData();
