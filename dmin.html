@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מערכת ניהול הפרתיה</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #E67E22 0%, #D35400 50%, #A0522D 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #FFF8DC 0%, #F5F5DC 100%);
+            color: #8B4513;
+            padding: 30px 40px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            border-bottom: 3px solid #E67E22;
+        }
+        
+        .logo {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        
+        .header-text h1 {
+            margin: 0;
+            font-size: 36px;
+            font-weight: bold;
+            color: #8B4513;
+            margin-bottom: 10px;
+        }
+        
+        .header-text p {
+            font-size: 18px;
+            color: #A0522D;
+            margin: 0;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .section {
+            margin-bottom: 50px;
+        }
+        
+        .section-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #8B4513;
+            margin-bottom: 20px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: #E67E22;
+            border-radius: 2px;
+        }
+        
+        /* גישה מהירה */
+        .quick-access {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .quick-btn {
+            background: linear-gradient(135deg, #E67E22, #D35400);
+            color: white;
+            border: none;
+            padding: 20px;
+            border-radius: 15px;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(230, 126, 34, 0.3);
+        }
+        
+        .quick-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(230, 126, 34, 0.4);
+        }
+        
+        .quick-btn .icon {
+            font-size: 32px;
+        }
+        
+        /* כרטיסיות אדמיניסטרציה */
+        .admin-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+        
+        .admin-card {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .admin-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #E67E22, #D35400);
+            transition: left 0.3s;
+        }
+        
+        .admin-card:hover::before {
+            left: 0;
+        }
+        
+        .admin-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border-color: #E67E22;
+        }
+        
+        .admin-card .icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            display: block;
+        }
+        
+        .admin-card h3 {
+            color: #2c3e50;
+            font-size: 18px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        
+        .admin-card p {
+            color: #6c757d;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        
+        /* צבעים מיוחדים לכרטיסיות */
+        .card-expenses .icon { color: #28a745; }
+        .card-products .icon { color: #E67E22; }
+        .card-residents .icon { color: #007bff; }
+        .card-quantities .icon { color: #6f42c1; }
+        .card-timing .icon { color: #fd7e14; }
+        .card-popular .icon { color: #dc3545; }
+        
+        /* רספונסיביות */
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                max-width: none;
+            }
+            
+            .content {
+                padding: 30px 20px;
+            }
+            
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                padding: 25px 20px;
+            }
+            
+            .logo {
+                width: 80px;
+                height: 80px;
+            }
+            
+            .header-text h1 {
+                font-size: 28px;
+            }
+            
+            .header-text p {
+                font-size: 16px;
+            }
+            
+            .section-title {
+                font-size: 20px;
+            }
+            
+            .quick-access {
+                grid-template-columns: 1fr;
+            }
+            
+            .admin-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .admin-card {
+                padding: 20px;
+            }
+            
+            .admin-card .icon {
+                font-size: 40px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .header-text h1 {
+                font-size: 24px;
+            }
+            
+            .admin-card {
+                padding: 15px;
+            }
+            
+            .admin-card .icon {
+                font-size: 36px;
+                margin-bottom: 10px;
+            }
+            
+            .admin-card h3 {
+                font-size: 16px;
+            }
+            
+            .admin-card p {
+                font-size: 13px;
+            }
+        }
+        
+        /* אנימציות */
+        .admin-card, .quick-btn {
+            animation: fadeIn 0.6s ease forwards;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* עיצוב מיוחד לכפתור גוגל שיטס */
+        .quick-btn.sheets {
+            background: linear-gradient(135deg, #34a853, #137333);
+        }
+        
+        .quick-btn.sheets:hover {
+            box-shadow: 0 8px 25px rgba(52, 168, 83, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="logo.png" alt="לוגו הפרתיה" class="logo">
+            <div class="header-text">
+                <h1>מערכת ניהול הפרתיה</h1>
+                <p>מרכז הבקרה והניהול של פאב הקהילה</p>
+            </div>
+        </div>
+        
+        <div class="content">
+            <!-- גישה מהירה -->
+            <div class="section">
+                <h2 class="section-title">🚀 גישה מהירה</h2>
+                <div class="quick-access">
+                    <a href="index.html" class="quick-btn">
+                        <span class="icon">📝</span>
+                        <span>רישום הזמנות</span>
+                    </a>
+                    <a href="orders.html" class="quick-btn">
+                        <span class="icon">📊</span>
+                        <span>הזמנות פעילות</span>
+                    </a>
+                    <a href="https://docs.google.com/spreadsheets/d/1b7i4Nn0ajOVKwZSWUpDVanezscA50Jdh1harmJqiSZY" target="_blank" class="quick-btn sheets">
+                        <span class="icon">📈</span>
+                        <span>גוגל שיטס</span>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- כלי אדמיניסטרציה -->
+            <div class="section">
+                <h2 class="section-title">🔧 כלי אדמיניסטרציה</h2>
+                <div class="admin-grid">
+                    
+                    <div class="admin-card card-expenses" onclick="openExpensesSummary()">
+                        <span class="icon">💰</span>
+                        <h3>סיכום הוצאות לתושב</h3>
+                        <p>יצירת דוח מפורט של הוצאות כל תושב באירוע ספציפי</p>
+                    </div>
+                    
+                    <div class="admin-card card-products" onclick="openProductsManagement()">
+                        <span class="icon">🛍️</span>
+                        <h3>ניהול מוצרים</h3>
+                        <p>הוספה, עריכה ומחיקה של מוצרים ומחירים</p>
+                    </div>
+                    
+                    <div class="admin-card card-residents" onclick="openResidentsManagement()">
+                        <span class="icon">👥</span>
+                        <h3>ניהול תושבים</h3>
+                        <p>ניהול רשימת התושבים והמידע הקשור אליהם</p>
+                    </div>
+                    
+                    <div class="admin-card card-quantities" onclick="openQuantitiesSummary()">
+                        <span class="icon">📦</span>
+                        <h3>סיכום מוצרים לאירוע</h3>
+                        <p>דוח כמות המוצרים שנמכרו באירוע לצורך רכש</p>
+                    </div>
+                    
+                    <div class="admin-card card-timing" onclick="openTimingReport()">
+                        <span class="icon">⏱️</span>
+                        <h3>זמני המתנה ממוצעים</h3>
+                        <p>ניתוח זמני הכנה וביצועי הבר</p>
+                    </div>
+                    
+                    <div class="admin-card card-popular" onclick="openPopularReport()">
+                        <span class="icon">🏆</span>
+                        <h3>מוצרים פופולאריים</h3>
+                        <p>דוח המוצרים הנמכרים ביותר לפי תקופות</p>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // פונקציות לפתיחת דפי האדמיניסטרציה
+        function openExpensesSummary() {
+            window.location.href = 'expenses-summary.html';
+        }
+        
+        function openProductsManagement() {
+            // TODO: פתיחת דף ניהול מוצרים
+            alert('ניהול מוצרים - בפיתוח');
+        }
+        
+        function openResidentsManagement() {
+            // TODO: פתיחת דף ניהול תושבים
+            alert('ניהול תושבים - בפיתוח');
+        }
+        
+        function openQuantitiesSummary() {
+            // TODO: פתיחת דף סיכום מוצרים לאירוע
+            alert('סיכום מוצרים לאירוע - בפיתוח');
+        }
+        
+        function openTimingReport() {
+            // TODO: פתיחת דף זמני המתנה ממוצעים
+            alert('זמני המתנה ממוצעים - בפיתוח');
+        }
+        
+        function openPopularReport() {
+            // TODO: פתיחת דף מוצרים פופולאריים
+            alert('מוצרים פופולאריים - בפיתוח');
+        }
+        
+        // אנימציות כניסה מדורגות
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.admin-card, .quick-btn');
+            cards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
+            });
+        });
+    </script>
+</body>
+</html>
