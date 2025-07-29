@@ -621,6 +621,52 @@
                 return dateStr;
             }
         }
+
+        // עיבוד נתוני ההזמנות לפי תאריך - כל תושב+תאריך = שורה נפרדת
+        // עם טיפול בהזמנות לילה (חצות-6:00 מוקצות ליום הקודם)
+        function processOrdersDataByDate(orders) {
+            const residentsDataByDate = {};
+            
+            orders.forEach(order => {
+                const name = order.customerName || 'לא צוין';
+                const residenceType = order.residenceType || '';
+                const products = order.products || '';
+                const total = parseInt(order.total) || 0;
+                
+                // קביעת התאריך הנכון (עם טיפול בהזמנות לילה)
+                const correctDate = getCorrectEventDate(order.date, order.time);
+                
+                // מפתח ייחודי לכל תושב+תאריך
+                const key = `${name}|${correctDate}`;
+                
+                if (!residentsDataByDate[key]) {
+                    residentsDataByDate[key] = {
+                        name: name,
+                        residenceType: residenceType,
+                        eventDate: correctDate,
+                        eventDateFormatted: formatDateNice(correctDate),
+                        orders: [],
+                        totalAmount: 0
+                    };
+                }
+                
+                residentsDataByDate[key].orders.push({
+                    products: products,
+                    total: total
+                });
+                residentsDataByDate[key].totalAmount += total;
+            });
+            
+            // המרה למערך וסדר לפי שם ואז לפי תאריך
+            return Object.values(residentsDataByDate).sort((a, b) => {
+                if (a.name !== b.name) {
+                    return a.name.localeCompare(b.name, 'he');
+                }
+                return a.eventDate.localeCompare(b.eventDate);
+            });
+        }
+        
+
         
         // שליפת הזמנות לפי טווח תאריכים - עם סינון בצד הלקוח
         async function fetchOrdersByDateRange(fromDate, toDate) {
@@ -750,7 +796,8 @@
             }
         }
         
-        // עיבוד נתוני ההזמנות לפי תאריך - כל תושב+תאריך = שורה נפרדת
+      // עיבוד נתוני ההזמנות לפי תאריך - כל תושב+תאריך = שורה נפרדת
+        // עם טיפול בהזמנות לילה (חצות-6:00 מוקצות ליום הקודם)
         function processOrdersDataByDate(orders) {
             const residentsDataByDate = {};
             
@@ -759,17 +806,19 @@
                 const residenceType = order.residenceType || '';
                 const products = order.products || '';
                 const total = parseInt(order.total) || 0;
-                const orderDate = cleanDate(order.date);
+                
+                // קביעת התאריך הנכון (עם טיפול בהזמנות לילה)
+                const correctDate = getCorrectEventDate(order.date, order.time);
                 
                 // מפתח ייחודי לכל תושב+תאריך
-                const key = `${name}|${orderDate}`;
+                const key = `${name}|${correctDate}`;
                 
                 if (!residentsDataByDate[key]) {
                     residentsDataByDate[key] = {
                         name: name,
                         residenceType: residenceType,
-                        eventDate: orderDate,
-                        eventDateFormatted: formatDateNice(orderDate),
+                        eventDate: correctDate,
+                        eventDateFormatted: formatDateNice(correctDate),
                         orders: [],
                         totalAmount: 0
                     };
@@ -791,6 +840,7 @@
             });
         }
         
+
         // הצגת התוצאות
         function displayResults(data) {
             updateStatistics(data);
