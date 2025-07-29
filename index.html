@@ -502,7 +502,7 @@
                         <div class="form-group">
                             <label for="customerName">שם המזמין:</label>
                             <div class="name-input-container">
-                           <input type="text" id="customerName" name="customerName" required placeholder="בחר שם מהרשימה..." readonly autocomplete="off" inputmode="text">
+                           <input type="text" id="customerName" name="customerName" required placeholder="בחר שם מהרשימה..." autocomplete="off" inputmode="text">
                                 <div class="autocomplete-list" id="autocompleteList"></div>
                             </div>
                             <div class="guest-toggle">
@@ -740,7 +740,7 @@
             const kfarAdumimBtn = document.getElementById('kfarAdumimBtn');
             const alonBtn = document.getElementById('alonBtn');
             const validationMsg = document.getElementById('nameValidationMsg');
-            
+             nameInput.readOnly = true;
             // פונקציה לאיפוס כל הכפתורים
             function resetAllButtons() {
                 [guestBtn, kfarAdumimBtn, alonBtn].forEach(btn => {
