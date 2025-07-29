@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>סיכום הוצאות לתושב - הפרתיה</title>
+    <link rel="icon" href="logo.png" type="image/png">
     <style>
         * {
             margin: 0;
@@ -93,9 +94,16 @@
             align-items: end;
         }
         
+        .date-range-group {
+            display: flex;
+            gap: 10px;
+            align-items: end;
+        }
+        
         .form-group {
             display: flex;
             flex-direction: column;
+            flex: 1;
         }
         
         .form-group label {
@@ -268,6 +276,12 @@
             font-style: italic;
         }
         
+        .event-date {
+            font-weight: bold;
+            color: #E67E22;
+            font-size: 14px;
+        }
+        
         .order-details {
             font-size: 13px;
             line-height: 1.4;
@@ -352,6 +366,11 @@
                 gap: 15px;
             }
             
+            .date-range-group {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
             .filters {
                 flex-direction: column;
                 align-items: stretch;
@@ -380,7 +399,9 @@
     <div class="container">
         <div class="header">
             <div class="header-content">
-                <img src="logo.png" alt="לוגו הפרתיה" class="logo">
+          <a href="admin.html">
+    <img src="logo.png" alt="לוגו הפרתיה" class="logo">
+</a>
                 <div class="header-text">
                     <h1>💰 סיכום הוצאות לתושב</h1>
                 </div>
@@ -392,9 +413,15 @@
             <!-- בקרות -->
             <div class="controls">
                 <div class="controls-row">
-                    <div class="form-group">
-                        <label for="eventDate">תאריך האירוע:</label>
-                        <input type="date" id="eventDate" required>
+                    <div class="date-range-group">
+                        <div class="form-group">
+                            <label for="fromDate">מתאריך:</label>
+                            <input type="date" id="fromDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="toDate">עד תאריך:</label>
+                            <input type="date" id="toDate" required>
+                        </div>
                     </div>
                     
                     <div class="form-group">
@@ -451,9 +478,10 @@
                     <table class="expenses-table">
                         <thead>
                             <tr>
-                                <th style="width: 200px;">שם התושב</th>
-                                <th style="width: 300px;">פירוט הזמנות</th>
-                                <th style="width: 100px;">סכום כולל</th>
+                                <th style="width: 180px;">שם התושב</th>
+                                <th style="width: 120px;">תאריך אירוע</th>
+                                <th style="width: 250px;">פירוט הזמנות</th>
+                                <th style="width: 100px;">סכום</th>
                             </tr>
                         </thead>
                         <tbody id="expensesTableBody">
@@ -522,20 +550,15 @@
             return str;
         }
         
-        // פונקציה לבדיקה אם הזמנה רלוונטית לאירוע ספציפי (מהתאריך + יום למחרת עד 6:00)
-        function isRelevantForEvent(dateStr, timeStr, eventDate) {
-            if (!dateStr || !timeStr || !eventDate) return false;
-            
-            // יצירת תאריכים לחיפוש
-            const eventDateObj = new Date(eventDate);
-            const nextDay = new Date(eventDateObj);
-            nextDay.setDate(nextDay.getDate() + 1);
+        // פונקציה לבדיקה אם הזמנה רלוונטית לטווח תאריכים
+        function isRelevantForDateRange(dateStr, timeStr, fromDate, toDate) {
+            if (!dateStr || !timeStr || !fromDate || !toDate) return false;
             
             // ניקוי תאריך ושעה של ההזמנה
             const cleanedDate = cleanDate(dateStr);
             const cleanedTime = cleanTime(timeStr);
             
-            console.log('בודק רלוונטיות לאירוע:', cleanedDate, cleanedTime, 'עבור תאריך אירוע:', eventDate);
+            console.log('בודק רלוונטיות לטווח:', cleanedDate, cleanedTime, 'עבור טווח:', fromDate, 'עד', toDate);
             
             try {
                 // פרסור התאריך והשעה של ההזמנה
@@ -559,37 +582,54 @@
                     parseInt(minute)
                 );
                 
+                // יצירת תאריכי הטווח
+                const fromDateObj = new Date(fromDate);
+                const toDateObj = new Date(toDate);
+                // הוספת יום אחד לתאריך הסיום כדי לכלול גם את הלילה שאחרי
+                const toDateNextDay = new Date(toDateObj);
+                toDateNextDay.setDate(toDateNextDay.getDate() + 1);
+                toDateNextDay.setHours(6, 0, 0, 0); // עד 6:00 בבוקר של היום שאחרי
+                
                 console.log('תאריך הזמנה:', orderDate);
-                console.log('תאריך אירוע:', eventDateObj);
-                console.log('יום למחרת:', nextDay);
+                console.log('מתאריך:', fromDateObj);
+                console.log('עד תאריך (כולל לילה):', toDateNextDay);
                 
-                // בדיקה אם ההזמנה היא:
-                // 1. מתאריך האירוע (כל שעה)
-                const isEventDay = orderDate.toDateString() === eventDateObj.toDateString();
+                // בדיקה אם ההזמנה בטווח
+                const isInRange = orderDate >= fromDateObj && orderDate <= toDateNextDay;
                 
-                // 2. או מהיום שאחרי עד 06:00
-                const isNextDayEarly = orderDate.toDateString() === nextDay.toDateString() && 
-                                       orderDate.getHours() >= 0 && orderDate.getHours() < 6;
+                console.log('האם בטווח:', isInRange);
                 
-                const isRelevant = isEventDay || isNextDayEarly;
-                console.log('האם רלוונטי:', isRelevant, '(יום האירוע:', isEventDay, ', למחרת מוקדם:', isNextDayEarly, ')');
-                
-                return isRelevant;
+                return isInRange;
                 
             } catch (error) {
-                console.error('שגיאה בבדיקת זמן לאירוע:', error);
+                console.error('שגיאה בבדיקת זמן לטווח:', error);
                 return false;
             }
         }
         
-        // שליפת הזמנות לפי תאריך - עם סינון בצד הלקוח מהגיליון הראשי
-        async function fetchOrdersByDate(eventDate) {
-            console.log('=== מתחיל fetchOrdersByDate עם סינון בצד הלקוח מהגיליון הראשי ===');
-            console.log('תאריך שנשלח:', eventDate);
+        // פונקציה להמרת תאריך לפורמט יפה
+        function formatDateNice(dateStr) {
+            try {
+                const [day, month, year] = dateStr.split('/');
+                const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+                return date.toLocaleDateString('he-IL', { 
+                    day: 'numeric', 
+                    month: 'short',
+                    weekday: 'short'
+                });
+            } catch (error) {
+                return dateStr;
+            }
+        }
+        
+        // שליפת הזמנות לפי טווח תאריכים - עם סינון בצד הלקוח
+        async function fetchOrdersByDateRange(fromDate, toDate) {
+            console.log('=== מתחיל fetchOrdersByDateRange עם סינון בצד הלקוח ===');
+            console.log('טווח תאריכים:', fromDate, 'עד', toDate);
             
             const params = new URLSearchParams({
-                action: 'getRecentOrdersFromMain',  // שינוי לפונקציה הנכונה
-                limit: 500  // מביאים 500 הזמנות אחרונות מהגיליון הראשי
+                action: 'getRecentOrdersFromMain',
+                limit: 1000  // מביאים יותר הזמנות כי אנחנו מחפשים בטווח רחב יותר
             });
             
             console.log('פרמטרים שנשלחים:', params.toString());
@@ -614,12 +654,11 @@
                 
                 console.log('מקבל תוכן מהשרת...');
                 const resultText = await response.text();
-                console.log('תוכן גולמי מהשרת:', resultText);
-                console.log('אורך התוכן:', resultText.length);
+                console.log('תוכן גולמי מהשרת (אורך):', resultText.length);
                 
                 console.log('מנסה לפרסר JSON...');
                 const jsonResult = JSON.parse(resultText);
-                console.log('JSON מפורסר:', jsonResult);
+                console.log('JSON מפורסר בהצלחה');
                 
                 if (!jsonResult.success) {
                     console.error('השרת החזיר שגיאה:', jsonResult.message);
@@ -628,12 +667,11 @@
                 
                 const allOrders = jsonResult.orders || [];
                 console.log('מספר הזמנות שהתקבלו מהשרת:', allOrders.length);
-                console.log('דוגמה להזמנה ראשונה:', allOrders[0]);
                 
-                // סינון הזמנות רלוונטיות לאירוע
-                console.log('=== מתחיל סינון הזמנות לאירוע ===');
+                // סינון הזמנות רלוונטיות לטווח
+                console.log('=== מתחיל סינון הזמנות לטווח ===');
                 const relevantOrders = allOrders.filter(order => {
-                    const isRelevant = isRelevantForEvent(order.date, order.time, eventDate);
+                    const isRelevant = isRelevantForDateRange(order.date, order.time, fromDate, toDate);
                     if (!isRelevant) {
                         console.log('מסנן הזמנה:', order.customerName, order.date, order.time);
                     }
@@ -646,7 +684,7 @@
                 return relevantOrders;
                 
             } catch (error) {
-                console.error('=== שגיאה ב-fetchOrdersByDate ===');
+                console.error('=== שגיאה ב-fetchOrdersByDateRange ===');
                 console.error('סוג השגיאה:', error.name);
                 console.error('הודעת השגיאה:', error.message);
                 console.error('מקום השגיאה:', error.stack);
@@ -658,7 +696,9 @@
         document.addEventListener('DOMContentLoaded', function() {
             // הגדרת תאריך היום כברירת מחדל
             const today = new Date();
-            document.getElementById('eventDate').value = today.toISOString().split('T')[0];
+            const todayStr = today.toISOString().split('T')[0];
+            document.getElementById('fromDate').value = todayStr;
+            document.getElementById('toDate').value = todayStr;
             
             // Event listeners
             document.getElementById('generateBtn').addEventListener('click', generateReport);
@@ -669,9 +709,16 @@
         
         // יצירת דוח
         async function generateReport() {
-            const eventDate = document.getElementById('eventDate').value;
-            if (!eventDate) {
-                alert('אנא בחר תאריך אירוע');
+            const fromDate = document.getElementById('fromDate').value;
+            const toDate = document.getElementById('toDate').value;
+            
+            if (!fromDate || !toDate) {
+                alert('אנא בחר טווח תאריכים');
+                return;
+            }
+            
+            if (new Date(fromDate) > new Date(toDate)) {
+                alert('תאריך ההתחלה צריך להיות לפני תאריך הסיום');
                 return;
             }
             
@@ -686,10 +733,10 @@
             
             try {
                 // שליפת נתונים מהשרת
-                const orders = await fetchOrdersByDate(eventDate);
+                const orders = await fetchOrdersByDateRange(fromDate, toDate);
                 
                 // עיבוד הנתונים
-                currentData = processOrdersData(orders);
+                currentData = processOrdersDataByDate(orders);
                 
                 // הצגת התוצאות
                 displayResults(currentData);
@@ -703,36 +750,45 @@
             }
         }
         
-        // עיבוד נתוני ההזמנות
-        function processOrdersData(orders) {
-            const residentsData = {};
+        // עיבוד נתוני ההזמנות לפי תאריך - כל תושב+תאריך = שורה נפרדת
+        function processOrdersDataByDate(orders) {
+            const residentsDataByDate = {};
             
             orders.forEach(order => {
                 const name = order.customerName || 'לא צוין';
                 const residenceType = order.residenceType || '';
                 const products = order.products || '';
                 const total = parseInt(order.total) || 0;
+                const orderDate = cleanDate(order.date);
                 
-                if (!residentsData[name]) {
-                    residentsData[name] = {
+                // מפתח ייחודי לכל תושב+תאריך
+                const key = `${name}|${orderDate}`;
+                
+                if (!residentsDataByDate[key]) {
+                    residentsDataByDate[key] = {
                         name: name,
                         residenceType: residenceType,
+                        eventDate: orderDate,
+                        eventDateFormatted: formatDateNice(orderDate),
                         orders: [],
                         totalAmount: 0
                     };
                 }
                 
-                residentsData[name].orders.push({
+                residentsDataByDate[key].orders.push({
                     products: products,
                     total: total
                 });
-                residentsData[name].totalAmount += total;
+                residentsDataByDate[key].totalAmount += total;
             });
             
-            // המרה למערך וסדר אלפביתי
-            return Object.values(residentsData).sort((a, b) => 
-                a.name.localeCompare(b.name, 'he')
-            );
+            // המרה למערך וסדר לפי שם ואז לפי תאריך
+            return Object.values(residentsDataByDate).sort((a, b) => {
+                if (a.name !== b.name) {
+                    return a.name.localeCompare(b.name, 'he');
+                }
+                return a.eventDate.localeCompare(b.eventDate);
+            });
         }
         
         // הצגת התוצאות
@@ -745,12 +801,12 @@
         
         // עדכון סטטיסטיקות
         function updateStatistics(data) {
-            const totalResidents = data.length;
-            const totalOrders = data.reduce((sum, resident) => sum + resident.orders.length, 0);
-            const totalRevenue = data.reduce((sum, resident) => sum + resident.totalAmount, 0);
-            const averageSpending = totalResidents > 0 ? Math.round(totalRevenue / totalResidents) : 0;
+            const uniqueResidents = new Set(data.map(item => item.name)).size;
+            const totalOrders = data.reduce((sum, item) => sum + item.orders.length, 0);
+            const totalRevenue = data.reduce((sum, item) => sum + item.totalAmount, 0);
+            const averageSpending = uniqueResidents > 0 ? Math.round(totalRevenue / uniqueResidents) : 0;
             
-            document.getElementById('totalResidents').textContent = totalResidents;
+            document.getElementById('totalResidents').textContent = uniqueResidents;
             document.getElementById('totalOrders').textContent = totalOrders;
             document.getElementById('totalRevenue').textContent = `₪${totalRevenue}`;
             document.getElementById('averageSpending').textContent = `₪${averageSpending}`;
@@ -762,15 +818,15 @@
             const residenceFilter = document.getElementById('residenceFilter').value;
             
             // סינון לפי סוג תושב
-            const filteredData = data.filter(resident => {
+            const filteredData = data.filter(item => {
                 if (!residenceFilter) return true;
-                return resident.residenceType === residenceFilter;
+                return item.residenceType === residenceFilter;
             });
             
             if (filteredData.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="3" class="no-data">
+                        <td colspan="4" class="no-data">
                             אין נתונים להצגה עבור הפילטרים שנבחרו
                         </td>
                     </tr>
@@ -778,23 +834,26 @@
                 return;
             }
             
-            tbody.innerHTML = filteredData.map(resident => {
-                const ordersSummary = createOrdersSummary(resident.orders);
-                const residenceDisplay = resident.residenceType ? 
-                    `<div class="residence-type">(${resident.residenceType})</div>` : '';
+            tbody.innerHTML = filteredData.map(item => {
+                const ordersSummary = createOrdersSummary(item.orders);
+                const residenceDisplay = item.residenceType ? 
+                    `<div class="residence-type">(${item.residenceType})</div>` : '';
                 
                 return `
                     <tr>
                         <td>
-                            <div class="resident-name">${resident.name}</div>
+                            <div class="resident-name">${item.name}</div>
                             ${residenceDisplay}
+                        </td>
+                        <td>
+                            <div class="event-date">${item.eventDateFormatted}</div>
                         </td>
                         <td>
                             <div class="order-details ${showDetails ? '' : 'hidden'}">
                                 ${ordersSummary}
                             </div>
                         </td>
-                        <td class="total-amount">₪${resident.totalAmount}</td>
+                        <td class="total-amount">₪${item.totalAmount}</td>
                     </tr>
                 `;
             }).join('');
@@ -838,10 +897,10 @@
         function filterTable() {
             if (currentData.length > 0) {
                 updateTable(currentData);
-                updateStatistics(currentData.filter(resident => {
+                updateStatistics(currentData.filter(item => {
                     const residenceFilter = document.getElementById('residenceFilter').value;
                     if (!residenceFilter) return true;
-                    return resident.residenceType === residenceFilter;
+                    return item.residenceType === residenceFilter;
                 }));
             }
         }
@@ -853,21 +912,23 @@
                 return;
             }
             
-            const eventDate = document.getElementById('eventDate').value;
+            const fromDate = document.getElementById('fromDate').value;
+            const toDate = document.getElementById('toDate').value;
             const residenceFilter = document.getElementById('residenceFilter').value;
             
             // הכנת הנתונים ליצוא
             const exportData = currentData
-                .filter(resident => {
+                .filter(item => {
                     if (!residenceFilter) return true;
-                    return resident.residenceType === residenceFilter;
+                    return item.residenceType === residenceFilter;
                 })
-                .map(resident => ({
-                    'שם התושב': resident.name,
-                    'סוג תושב': resident.residenceType || 'תושב נופי פרת (ברשימה)',
-                    'פירוט הזמנות': createOrdersSummary(resident.orders),
-                    'מספר הזמנות': resident.orders.length,
-                    'סכום כולל': resident.totalAmount
+                .map(item => ({
+                    'שם התושב': item.name,
+                    'תאריך אירוע': item.eventDateFormatted,
+                    'סוג תושב': item.residenceType || 'תושב נופי פרת (ברשימה)',
+                    'פירוט הזמנות': createOrdersSummary(item.orders),
+                    'מספר הזמנות': item.orders.length,
+                    'סכום': item.totalAmount
                 }));
             
             // יצירת קובץ Excel
@@ -876,7 +937,7 @@
             XLSX.utils.book_append_sheet(wb, ws, 'סיכום הוצאות');
             
             // הורדת הקובץ
-            const fileName = `סיכום_הוצאות_${eventDate}.xlsx`;
+            const fileName = `סיכום_הוצאות_${fromDate}_עד_${toDate}.xlsx`;
             XLSX.writeFile(wb, fileName);
         }
         
