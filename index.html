@@ -19,6 +19,91 @@
             padding: 20px;
         }
         
+        /* מסך טעינה */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #E67E22 0%, #D35400 50%, #A0522D 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+        }
+        
+        .loading-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+        
+        .loading-logo {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 30px;
+            animation: pulse 2s ease-in-out infinite;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+        
+        .loading-title {
+            color: #FFF8DC;
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .loading-subtitle {
+            color: #F5F5DC;
+            font-size: 18px;
+            margin-bottom: 40px;
+            text-align: center;
+            opacity: 0.9;
+        }
+        
+        .loading-progress {
+            color: #FFF8DC;
+            font-size: 16px;
+            margin-bottom: 20px;
+            text-align: center;
+            min-height: 24px;
+        }
+        
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 248, 220, 0.3);
+            border-top: 4px solid #FFF8DC;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* עמוד ראשי - מוסתר בהתחלה */
+        .main-content {
+            opacity: 0;
+            transition: opacity 0.8s ease;
+        }
+        
+        .main-content.visible {
+            opacity: 1;
+        }
+        
         .container {
             max-width: 800px;
             margin: 0 auto;
@@ -45,6 +130,12 @@
             height: 180px;
             border-radius: 50%;
             object-fit: cover;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        .logo:hover {
+            transform: scale(1.05);
         }
         
         .header-text {
@@ -110,6 +201,12 @@
             background-color: #f8f9fa;
             color: #6c757d;
             cursor: pointer;
+        }
+        
+        input[type="text"]:disabled {
+            background-color: #f0f0f0;
+            color: #999;
+            cursor: not-allowed;
         }
         
         /* סגנון לAutocomplete */
@@ -337,11 +434,6 @@
             transform: translate(-50%, -50%);
         }
         
-        @keyframes spin {
-            0% { transform: translate(-50%, -50%) rotate(0deg); }
-            100% { transform: translate(-50%, -50%) rotate(360deg); }
-        }
-        
         .status.info {
             background: #d1ecf1;
             color: #0c5460;
@@ -408,6 +500,19 @@
         }
         
         @media (max-width: 768px) {
+            .loading-title {
+                font-size: 24px;
+            }
+            
+            .loading-subtitle {
+                font-size: 16px;
+            }
+            
+            .loading-logo {
+                width: 120px;
+                height: 120px;
+            }
+            
             .container {
                 margin: 10px;
                 max-width: none;
@@ -485,106 +590,119 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-        <a href="admin.html">
-    <img src="logo.png" alt="לוגו הפרתיה" class="logo">
-</a>
-            <div class="header-text">
-                <h1>רישום הזמנות</h1>
+    <!-- מסך טעינה -->
+    <div class="loading-screen" id="loadingScreen">
+        <img src="logo.png" alt="לוגו הפרתיה" class="loading-logo">
+        <h1 class="loading-title">ברוכים הבאים לפרתיה!</h1>
+        <p class="loading-subtitle">מכינים הכל בשבילכם...</p>
+        <div class="loading-progress" id="loadingProgress">בודק חיבור לשרת...</div>
+        <div class="loading-spinner"></div>
+    </div>
+
+    <!-- תוכן ראשי -->
+    <div class="main-content" id="mainContent">
+        <div class="container">
+            <div class="header">
+                <a href="admin.html">
+                    <img src="logo.png" alt="לוגו הפרתיה" class="logo">
+                </a>
+                <div class="header-text">
+                    <h1>רישום הזמנות</h1>
+                </div>
             </div>
-        </div>
-        
-        <div class="content">
-            <form id="orderForm">
-                <div class="form-layout">
-                    <div class="form-main">
-                        <div class="form-group">
-                            <label for="customerName">שם המזמין:</label>
-                            <div class="name-input-container">
-                           <input type="text" id="customerName" name="customerName" required placeholder="בחר שם מהרשימה..." autocomplete="off" inputmode="text">
-                                <div class="autocomplete-list" id="autocompleteList"></div>
-                            </div>
-                            <div class="guest-toggle">
-                                <button type="button" id="guestBtn" class="guest-btn">תושב נופי פרת שאינו ברשימה</button>
-                                <button type="button" id="kfarAdumimBtn" class="guest-btn kfar-btn">כפר אדומים</button>
-                                <button type="button" id="alonBtn" class="guest-btn alon-btn">אלון</button>
-                            </div>
-                            <div class="name-validation-msg" id="nameValidationMsg" style="display: none; color: #dc3545; font-size: 14px; margin-top: 5px;"></div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>בחר מוצרים:</label>
-                            <div class="loading-indicator" id="productsLoading">
-                                טוען מוצרים...
-                            </div>
-                            <div class="products-grid" id="productsGrid" style="display: none;">
-                                <!-- המוצרים ייווצרו דינמית מהדאטה בייס -->
-                            </div>
-                        </div>
-                        
-                        <!-- סכום חופשי - רק במובייל -->
-                        <div class="form-group mobile-only">
-                            <label for="customAmount">סכום חופשי (אופציונלי):</label>
-                            <div style="display: flex; gap: 10px; align-items: center;">
-                                <input type="number" id="customAmount" placeholder="₪0" style="flex: 1;" min="0">
-                                <input type="text" id="customDescription" placeholder="תיאור (למשל: טיפ)" style="flex: 2;">
-                            </div>
-                        </div>
-                        
-                        <!-- הנחה - רק במובייל -->
-                        <div class="form-group mobile-only">
-                            <label for="discountAmount">הנחה (אופציונלי):</label>
-                            <div style="display: flex; gap: 10px; align-items: center;">
-                                <input type="number" id="discountAmount" placeholder="₪0" style="flex: 1;" min="0">
-                                <input type="text" id="discountDescription" placeholder="סיבת ההנחה" style="flex: 2;">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="form-sidebar">
-                        <!-- סכום חופשי - רק בדסקטופ -->
-                        <div class="form-group desktop-only">
-                            <label for="customAmountDesktop">סכום חופשי (אופציונלי):</label>
-                            <div style="display: flex; flex-direction: column; gap: 10px;">
-                                <input type="number" id="customAmountDesktop" placeholder="₪0" min="0">
-                                <input type="text" id="customDescriptionDesktop" placeholder="תיאור (למשל: טיפ)">
-                            </div>
-                        </div>
-                        
-                        <!-- הנחה - רק בדסקטופ -->
-                        <div class="form-group desktop-only">
-                            <label for="discountAmountDesktop">הנחה (אופציונלי):</label>
-                            <div style="display: flex; flex-direction: column; gap: 10px;">
-                                <input type="number" id="discountAmountDesktop" placeholder="₪0" min="0">
-                                <input type="text" id="discountDescriptionDesktop" placeholder="סיבת ההנחה">
-                            </div>
-                        </div>
-                        
-                        <div class="total" id="totalAmount">
-                            סכום כולל: ₪0
-                        </div>
-                        
-                        <button type="submit" class="submit-btn" id="submitBtn" disabled>
-                            אישור הזמנה
-                        </button>
-                        
-                        <div id="status"></div>
-                    </div>
-                </div>
-            </form>
             
-            <div class="recent-orders">
-                <h3>הזמנות אחרונות</h3>
-                <div id="recentOrdersList">
-                    <div class="order-item">
-                        <span>אין הזמנות עדיין</span>
+            <div class="content">
+                <form id="orderForm">
+                    <div class="form-layout">
+                        <div class="form-main">
+                            <div class="form-group">
+                                <label for="customerName">שם המזמין:</label>
+                                <div class="name-input-container">
+                                    <input type="text" id="customerName" name="customerName" required 
+                                           placeholder="בחר שם מהרשימה..." disabled autocomplete="off" inputmode="text">
+                                    <div class="autocomplete-list" id="autocompleteList"></div>
+                                </div>
+                                <div class="guest-toggle">
+                                    <button type="button" id="guestBtn" class="guest-btn">תושב נופי פרת שאינו ברשימה</button>
+                                    <button type="button" id="kfarAdumimBtn" class="guest-btn kfar-btn">כפר אדומים</button>
+                                    <button type="button" id="alonBtn" class="guest-btn alon-btn">אלון</button>
+                                </div>
+                                <div class="name-validation-msg" id="nameValidationMsg" style="display: none; color: #dc3545; font-size: 14px; margin-top: 5px;"></div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>בחר מוצרים:</label>
+                                <div class="loading-indicator" id="productsLoading">
+                                    טוען מוצרים...
+                                </div>
+                                <div class="products-grid" id="productsGrid" style="display: none;">
+                                    <!-- המוצרים ייווצרו דינמית מהדאטה בייס -->
+                                </div>
+                            </div>
+                            
+                            <!-- סכום חופשי - רק במובייל -->
+                            <div class="form-group mobile-only">
+                                <label for="customAmount">סכום חופשי (אופציונלי):</label>
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    <input type="number" id="customAmount" placeholder="₪0" style="flex: 1;" min="0">
+                                    <input type="text" id="customDescription" placeholder="תיאור (למשל: טיפ)" style="flex: 2;">
+                                </div>
+                            </div>
+                            
+                            <!-- הנחה - רק במובייל -->
+                            <div class="form-group mobile-only">
+                                <label for="discountAmount">הנחה (אופציונלי):</label>
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    <input type="number" id="discountAmount" placeholder="₪0" style="flex: 1;" min="0">
+                                    <input type="text" id="discountDescription" placeholder="סיבת ההנחה" style="flex: 2;">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-sidebar">
+                            <!-- סכום חופשי - רק בדסקטופ -->
+                            <div class="form-group desktop-only">
+                                <label for="customAmountDesktop">סכום חופזחופשי (אופציונלי):</label>
+                                <div style="display: flex; flex-direction: column; gap: 10px;">
+                                    <input type="number" id="customAmountDesktop" placeholder="₪0" min="0">
+                                    <input type="text" id="customDescriptionDesktop" placeholder="תיאור (למשל: טיפ)">
+                                </div>
+                            </div>
+                            
+                            <!-- הנחה - רק בדסקטופ -->
+                            <div class="form-group desktop-only">
+                                <label for="discountAmountDesktop">הנחה (אופציונלי):</label>
+                                <div style="display: flex; flex-direction: column; gap: 10px;">
+                                    <input type="number" id="discountAmountDesktop" placeholder="₪0" min="0">
+                                    <input type="text" id="discountDescriptionDesktop" placeholder="סיבת ההנחה">
+                                </div>
+                            </div>
+                            
+                            <div class="total" id="totalAmount">
+                                סכום כולל: ₪0
+                            </div>
+                            
+                            <button type="submit" class="submit-btn" id="submitBtn" disabled>
+                                אישור הזמנה
+                            </button>
+                            
+                            <div id="status"></div>
+                        </div>
                     </div>
-                </div>
-                <div style="text-align: center; margin-top: 20px;">
-                    <a href="admin.html" style="color: #E67E22; text-decoration: none; font-weight: bold;">
-                        🔧 מעבר לכלי ניהול
-                    </a>
+                </form>
+                
+                <div class="recent-orders">
+                    <h3>הזמנות אחרונות</h3>
+                    <div id="recentOrdersList">
+                        <div class="order-item">
+                            <span>אין הזמנות עדיין</span>
+                        </div>
+                    </div>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <a href="admin.html" style="color: #E67E22; text-decoration: none; font-weight: bold;">
+                            🔧 מעבר לכלי ניהול
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -604,10 +722,30 @@
         let isValidSelection = false; // האם נבחר שם תקין
         let currentResidenceType = ''; // סוג התושב הנוכחי
         
-       // טעינת נתונים מהדאטה בייס - מתוקן עם POST
+        // עדכון טקסט טעינה
+        function updateLoadingProgress(text) {
+            const progressElement = document.getElementById('loadingProgress');
+            if (progressElement) {
+                progressElement.textContent = text;
+            }
+        }
+        
+        // הסתרת מסך טעינה והצגת תוכן ראשי
+        function hideLoadingScreen() {
+            const loadingScreen = document.getElementById('loadingScreen');
+            const mainContent = document.getElementById('mainContent');
+            
+            setTimeout(() => {
+                loadingScreen.classList.add('hidden');
+                mainContent.classList.add('visible');
+            }, 500); // חכה חצי שנייה לפני המעבר
+        }
+        
+        // טעינת נתונים מהדאטה בייס - מתוקן עם POST
         async function loadData() {
             try {
                 // טעינת מוצרים
+                updateLoadingProgress('טוען מוצרים...');
                 console.log('מתחיל טעינת מוצרים...');
                 const productsResponse = await fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
@@ -635,6 +773,7 @@
                 }
                 
                 // טעינת תושבים
+                updateLoadingProgress('טוען רשימת תושבים...');
                 console.log('מתחיל טעינת תושבים...');
                 const residentsResponse = await fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
@@ -660,11 +799,25 @@
                     showStatus('שגיאה בחיבור לשרת לתושבים', 'error');
                 }
                 
+                // הפעלת השדות לאחר טעינה מוצלחת
+                updateLoadingProgress('מסיים הכנות...');
+                setTimeout(() => {
+                    const nameInput = document.getElementById('customerName');
+                    nameInput.disabled = false;
+                    nameInput.placeholder = 'בחר שם מהרשימה...';
+                    nameInput.readOnly = true;
+                    
+                    updateLoadingProgress('הכל מוכן! כניסה למערכת...');
+                    setTimeout(hideLoadingScreen, 800);
+                }, 300);
+                
             } catch (error) {
                 console.error('שגיאה בטעינת נתונים:', error);
+                updateLoadingProgress('שגיאה בטעינת נתונים - נסה לרענן את הדף');
                 showStatus('שגיאה בטעינת נתונים מהשרת', 'error');
             }
         }
+        
         // יצירת כפתורי מוצרים מהדאטה בייס
         function createProductButtons() {
             const grid = document.getElementById('productsGrid');
@@ -740,7 +893,10 @@
             const kfarAdumimBtn = document.getElementById('kfarAdumimBtn');
             const alonBtn = document.getElementById('alonBtn');
             const validationMsg = document.getElementById('nameValidationMsg');
-             nameInput.readOnly = true;
+            
+            // הגדרת readonly דרך JavaScript
+            nameInput.readOnly = true;
+            
             // פונקציה לאיפוס כל הכפתורים
             function resetAllButtons() {
                 [guestBtn, kfarAdumimBtn, alonBtn].forEach(btn => {
@@ -760,7 +916,6 @@
                 
                 nameInput.placeholder = placeholder;
                 nameInput.readOnly = false;
-                // לא למחוק את השם שהוקלד! nameInput.value = '';
                 autocompleteList.style.display = 'none';
                 isGuestMode = true;
                 currentResidenceType = type;
@@ -803,7 +958,7 @@
                 isValidSelection = false;
                 hideValidationMessage();
                 const existingMsg = document.getElementById('active-residence-msg');
-                if (existingMsg) existingMsg.remove(); // הסרת ההודעה
+                if (existingMsg) existingMsg.remove();
                 updateSubmitButton();
             }
             
@@ -849,30 +1004,28 @@
             // Autocomplete
             nameInput.addEventListener('input', (e) => {
                 if (isGuestMode) {
-                    isValidSelection = true; // במצב תושב חיצוני - תמיד תקין
+                    isValidSelection = true;
                     updateSubmitButton();
                     return;
                 }
                 
                 const query = e.target.value.toLowerCase().trim();
-                isValidSelection = false; // איפוס - עד שיבחרו מהרשימה
+                isValidSelection = false;
                 
                 if (query.length < 1) {
                     autocompleteList.style.display = 'none';
                     selectedAutocompleteIndex = -1;
-                    showValidationMessage('בחר שם מהרשימה או לחץ על אחד מהכפתורים');
+                    showValidationMessage('בחר שם מהรשימה או לחץ על אחד מהכפתורים');
                     updateSubmitButton();
                     return;
                 }
                 
-                // סינון תושבים לפי השם או הכינוי - חיפוש גמיש
                 const queryWords = query.split(' ').filter(word => word.length > 0);
                 
                 const matches = RESIDENTS.filter(resident => {
                     const fullNameLower = resident.fullName.toLowerCase();
                     const nicknameLower = (resident.nickname || '').toLowerCase();
                     
-                    // בדיקה אם כל המילים שהוקלדו נמצאות בשם המלא או בכינוי
                     const fullNameMatches = queryWords.every(word => fullNameLower.includes(word));
                     const nicknameMatches = queryWords.every(word => nicknameLower.includes(word));
                     
@@ -888,7 +1041,6 @@
                 
                 hideValidationMessage();
                 
-                // יצירת רשימת הצעות
                 autocompleteList.innerHTML = matches.map((resident, index) => 
                     `<div class="autocomplete-item" data-index="${index}">
                         <strong>${resident.fullName}</strong>
@@ -899,7 +1051,6 @@
                 autocompleteList.style.display = 'block';
                 selectedAutocompleteIndex = -1;
                 
-                // הוספת Event listeners לפריטים
                 document.querySelectorAll('.autocomplete-item').forEach((item, index) => {
                     item.addEventListener('click', () => {
                         selectResident(matches[index]);
@@ -909,7 +1060,6 @@
                 updateSubmitButton();
             });
             
-            // פונקציה לבחירת תושב מהרשימה
             function selectResident(resident) {
                 nameInput.value = resident.fullName;
                 nameInput.readOnly = true;
@@ -917,12 +1067,11 @@
                 autocompleteList.style.display = 'none';
                 selectedAutocompleteIndex = -1;
                 isValidSelection = true;
-                currentResidenceType = ''; // תושב מהרשימה - אין צורך בהערה
+                currentResidenceType = '';
                 hideValidationMessage();
                 updateSubmitButton();
             }
             
-            // פונקציות להצגת הודעות
             function showValidationMessage(message) {
                 validationMsg.textContent = message;
                 validationMsg.style.display = 'block';
@@ -932,7 +1081,6 @@
                 validationMsg.style.display = 'none';
             }
             
-            // ניווט עם מקלדת
             nameInput.addEventListener('keydown', (e) => {
                 if (isGuestMode) return;
                 
@@ -959,7 +1107,6 @@
                 }
             });
             
-            // סגירת הAutocomplete כשלוחצים בחוץ
             document.addEventListener('click', (e) => {
                 if (!nameInput.contains(e.target) && !autocompleteList.contains(e.target)) {
                     autocompleteList.style.display = 'none';
@@ -1035,9 +1182,6 @@
             const submitBtn = document.getElementById('submitBtn');
             const customerName = document.getElementById('customerName').value.trim();
             
-            // הכפתור יהיה פעיל רק אם:
-            // 1. יש שם
-            // 2. השם תקין (נבחר מהרשימה או במצב אורח)
             submitBtn.disabled = !(customerName && isValidSelection);
         }
         
@@ -1056,7 +1200,7 @@
             ).join('');
         }
         
-      async function sendToGoogleSheets(orderData) {
+        async function sendToGoogleSheets(orderData) {
             try {
                 console.log('שולח הזמנה לשרת:', orderData);
                 
@@ -1102,6 +1246,7 @@
                 return { success: false, message: error.toString() };
             }
         }
+        
         // שליחת טופס
         document.getElementById('orderForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -1162,7 +1307,7 @@
                 products: productsList.join(', '),
                 total: total,
                 timestamp: new Date().toLocaleString('he-IL'),
-                residenceType: currentResidenceType // הוספת סוג התושב
+                residenceType: currentResidenceType
             };
             
             recentOrders.push(newOrder);
@@ -1171,7 +1316,6 @@
             try {
                 const response = await sendToGoogleSheets(newOrder);
                 
-                // החזרת הכפתור למצב רגיל
                 submitBtn.classList.remove('loading');
                 submitBtn.textContent = originalText;
                 submitBtn.disabled = false;
@@ -1183,7 +1327,6 @@
                     showStatus('שגיאה בשמירת ההזמנה: ' + response.message, 'error');
                 }
             } catch (error) {
-                // החזרת הכפתור למצב רגיל גם במקרה של שגיאה
                 submitBtn.classList.remove('loading');
                 submitBtn.textContent = originalText;
                 submitBtn.disabled = false;
@@ -1212,7 +1355,6 @@
             const alonBtn = document.getElementById('alonBtn');
             const validationMsg = document.getElementById('nameValidationMsg');
             
-            // איפוס שדות
             nameInput.value = '';
             document.getElementById('customAmount').value = '';
             document.getElementById('customDescription').value = '';
@@ -1224,7 +1366,6 @@
             document.getElementById('discountDescriptionDesktop').value = '';
             selectedItems = {};
             
-            // איפוס מצב שם
             [guestBtn, kfarAdumimBtn, alonBtn].forEach(btn => {
                 btn.classList.remove('active');
             });
@@ -1232,7 +1373,6 @@
             kfarAdumimBtn.textContent = 'כפר אדומים';
             alonBtn.textContent = 'אלון';
             
-            // הסרת הודעת הבחירה
             const existingMsg = document.getElementById('active-residence-msg');
             if (existingMsg) existingMsg.remove();
             
@@ -1255,11 +1395,8 @@
         document.addEventListener('DOMContentLoaded', async function() {
             selectedItems = {};
             recentOrders = JSON.parse(localStorage.getItem('recentOrders') || '[]');
-            isValidSelection = false; // התחלה עם אימות לא תקין
-            currentResidenceType = ''; // התחלה ללא סוג תושב
-            
-            // טעינת נתונים מדאטה בייס
-            await loadData();
+            isValidSelection = false;
+            currentResidenceType = '';
             
             // הגדרת Autocomplete
             setupAutocomplete();
@@ -1275,6 +1412,9 @@
             document.getElementById('discountAmount').addEventListener('input', updateSubmitButton);
             document.getElementById('discountAmountDesktop').addEventListener('input', updateTotal);
             document.getElementById('discountAmountDesktop').addEventListener('input', updateSubmitButton);
+            
+            // טעינת נתונים מדאטה בייס - זה יחביא את מסך הטעינה כשיסתיים
+            await loadData();
         });
     </script>
 </body>
