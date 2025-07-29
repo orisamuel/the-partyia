@@ -526,29 +526,58 @@
             }
         }
         
-        // שליפת הזמנות לפי תאריך (כולל יום למחרת עד 6 בבוקר)
-        async function fetchOrdersByDate(eventDate) {
-            const params = new URLSearchParams({
-                action: 'getOrdersByEvent',
-                eventDate: eventDate
-            });
-            
-            const response = await fetch(`${GOOGLE_SCRIPT_URL}?${params.toString()}`);
-            
-            if (!response.ok) {
-                throw new Error(`שגיאה ${response.status}`);
-            }
-            
-            const result = await response.text();
-            const jsonResult = JSON.parse(result);
-            
-            if (!jsonResult.success) {
-                throw new Error(jsonResult.message || 'שגיאה לא ידועה');
-            }
-            
-            return jsonResult.orders || [];
+      // שליפת הזמנות לפי תאריך (כולל יום למחרת עד 6 בבוקר) - עם דיבוג מפורט
+async function fetchOrdersByDate(eventDate) {
+    console.log('=== מתחיל fetchOrdersByDate ===');
+    console.log('תאריך שנשלח:', eventDate);
+    
+    const params = new URLSearchParams({
+        action: 'getOrdersByEvent',
+        eventDate: eventDate
+    });
+    
+    const fullUrl = `${GOOGLE_SCRIPT_URL}?${params.toString()}`;
+    console.log('URL מלא:', fullUrl);
+    
+    try {
+        console.log('שולח בקשה לשרת...');
+        const response = await fetch(fullUrl);
+        
+        console.log('סטטוס תשובה:', response.status);
+        console.log('תשובה OK?', response.ok);
+        
+        if (!response.ok) {
+            console.error('שגיאה בתשובת השרת:', response.status, response.statusText);
+            throw new Error(`שגיאה ${response.status}`);
         }
         
+        console.log('מקבל תוכן מהשרת...');
+        const resultText = await response.text();
+        console.log('תוכן גולמי מהשרת:', resultText);
+        console.log('אורך התוכן:', resultText.length);
+        
+        console.log('מנסה לפרסר JSON...');
+        const jsonResult = JSON.parse(resultText);
+        console.log('JSON מפורסר:', jsonResult);
+        
+        if (!jsonResult.success) {
+            console.error('השרת החזיר שגיאה:', jsonResult.message);
+            throw new Error(jsonResult.message || 'שגיאה לא ידועה');
+        }
+        
+        console.log('מספר הזמנות שהתקבלו:', jsonResult.orders ? jsonResult.orders.length : 0);
+        console.log('דוגמה להזמנה ראשונה:', jsonResult.orders && jsonResult.orders[0]);
+        
+        return jsonResult.orders || [];
+        
+    } catch (error) {
+        console.error('=== שגיאה ב-fetchOrdersByDate ===');
+        console.error('סוג השגיאה:', error.name);
+        console.error('הודעת השגיאה:', error.message);
+        console.error('מקום השגיאה:', error.stack);
+        throw error;
+    }
+}
         // עיבוד נתוני ההזמנות
         function processOrdersData(orders) {
             const residentsData = {};
