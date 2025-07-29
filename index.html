@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>הפרתיה</title>
+    <link rel="icon" href="logo.png" type="image/png">
     <style>
         * {
             margin: 0;
@@ -486,7 +487,9 @@
 <body>
     <div class="container">
         <div class="header">
-            <img src="logo.png" alt="לוגו הפרתיה" class="logo">
+        <a href="admin.html">
+    <img src="logo.png" alt="לוגו הפרתיה" class="logo">
+</a>
             <div class="header-text">
                 <h1>רישום הזמנות</h1>
             </div>
@@ -601,28 +604,60 @@
         let isValidSelection = false; // האם נבחר שם תקין
         let currentResidenceType = ''; // סוג התושב הנוכחי
         
-        // טעינת נתונים מהדאטה בייס
+       // טעינת נתונים מהדאטה בייס - מתוקן עם POST
         async function loadData() {
             try {
                 // טעינת מוצרים
-                const productsResponse = await fetch(`${GOOGLE_SCRIPT_URL}?action=getProducts`);
+                console.log('מתחיל טעינת מוצרים...');
+                const productsResponse = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        action: 'getProducts'
+                    })
+                });
+                
                 if (productsResponse.ok) {
                     const productsResult = await productsResponse.json();
                     if (productsResult.success) {
                         PRODUCTS = productsResult.products;
                         console.log('נטענו', PRODUCTS.length, 'מוצרים');
                         createProductButtons();
+                    } else {
+                        console.error('שגיאה בטעינת מוצרים:', productsResult.message);
+                        showStatus('שגיאה בטעינת המוצרים', 'error');
                     }
+                } else {
+                    console.error('שגיאה בתשובת השרת למוצרים:', productsResponse.status);
+                    showStatus('שגיאה בחיבור לשרת למוצרים', 'error');
                 }
                 
                 // טעינת תושבים
-                const residentsResponse = await fetch(`${GOOGLE_SCRIPT_URL}?action=getResidents`);
+                console.log('מתחיל טעינת תושבים...');
+                const residentsResponse = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        action: 'getResidents'
+                    })
+                });
+                
                 if (residentsResponse.ok) {
                     const residentsResult = await residentsResponse.json();
                     if (residentsResult.success) {
                         RESIDENTS = residentsResult.residents;
                         console.log('נטענו', RESIDENTS.length, 'תושבים');
+                    } else {
+                        console.error('שגיאה בטעינת תושבים:', residentsResult.message);
+                        showStatus('שגיאה בטעינת התושבים', 'error');
                     }
+                } else {
+                    console.error('שגיאה בתשובת השרת לתושבים:', residentsResponse.status);
+                    showStatus('שגיאה בחיבור לשרת לתושבים', 'error');
                 }
                 
             } catch (error) {
@@ -630,7 +665,6 @@
                 showStatus('שגיאה בטעינת נתונים מהשרת', 'error');
             }
         }
-        
         // יצירת כפתורי מוצרים מהדאטה בייס
         function createProductButtons() {
             const grid = document.getElementById('productsGrid');
