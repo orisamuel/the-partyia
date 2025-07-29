@@ -399,7 +399,7 @@
     <div class="container">
         <div class="header">
             <div class="header-content">
-          <a href="admin.html">
+             <a href="admin.html">
     <img src="logo.png" alt="לוגו הפרתיה" class="logo">
 </a>
                 <div class="header-text">
@@ -621,52 +621,51 @@
                 return dateStr;
             }
         }
-
-        // עיבוד נתוני ההזמנות לפי תאריך - כל תושב+תאריך = שורה נפרדת
-        // עם טיפול בהזמנות לילה (חצות-6:00 מוקצות ליום הקודם)
-        function processOrdersDataByDate(orders) {
-            const residentsDataByDate = {};
-            
-            orders.forEach(order => {
-                const name = order.customerName || 'לא צוין';
-                const residenceType = order.residenceType || '';
-                const products = order.products || '';
-                const total = parseInt(order.total) || 0;
-                
-                // קביעת התאריך הנכון (עם טיפול בהזמנות לילה)
-                const correctDate = getCorrectEventDate(order.date, order.time);
-                
-                // מפתח ייחודי לכל תושב+תאריך
-                const key = `${name}|${correctDate}`;
-                
-                if (!residentsDataByDate[key]) {
-                    residentsDataByDate[key] = {
-                        name: name,
-                        residenceType: residenceType,
-                        eventDate: correctDate,
-                        eventDateFormatted: formatDateNice(correctDate),
-                        orders: [],
-                        totalAmount: 0
-                    };
-                }
-                
-                residentsDataByDate[key].orders.push({
-                    products: products,
-                    total: total
-                });
-                residentsDataByDate[key].totalAmount += total;
-            });
-            
-            // המרה למערך וסדר לפי שם ואז לפי תאריך
-            return Object.values(residentsDataByDate).sort((a, b) => {
-                if (a.name !== b.name) {
-                    return a.name.localeCompare(b.name, 'he');
-                }
-                return a.eventDate.localeCompare(b.eventDate);
-            });
-        }
         
-
+        // פונקציה לקביעת התאריך הנכון של האירוע (עם טיפול בהזמנות לילה)
+        function getCorrectEventDate(dateStr, timeStr) {
+            const cleanedDate = cleanDate(dateStr);
+            const cleanedTime = cleanTime(timeStr);
+            
+            console.log('קובע תאריך נכון עבור:', cleanedDate, cleanedTime);
+            
+            try {
+                // פרסור התאריך והשעה
+                const dateMatch = cleanedDate.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+                const timeMatch = cleanedTime.match(/(\d{1,2}):(\d{2})/);
+                
+                if (!dateMatch || !timeMatch) {
+                    console.log('לא הצלחתי לפרסר תאריך/שעה:', cleanedDate, cleanedTime);
+                    return cleanedDate; // מחזיר את התאריך המקורי אם לא הצליח לפרסר
+                }
+                
+                const [, day, month, year] = dateMatch;
+                const [, hour, minute] = timeMatch;
+                
+                const orderHour = parseInt(hour);
+                
+                // אם ההזמנה בין חצות ל-6:00 - נקצה אותה ליום הקודם
+                if (orderHour >= 0 && orderHour < 6) {
+                    console.log('הזמנת לילה - מקצה ליום הקודם');
+                    
+                    // יצירת תאריך וחיסור יום אחד
+                    const orderDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+                    orderDate.setDate(orderDate.getDate() - 1); // יום אחורה
+                    
+                    // פורמט החזרה
+                    const correctedDate = `${orderDate.getDate().toString().padStart(2, '0')}/${(orderDate.getMonth() + 1).toString().padStart(2, '0')}/${orderDate.getFullYear()}`;
+                    console.log('תאריך מתוקן:', correctedDate);
+                    return correctedDate;
+                }
+                
+                console.log('הזמנה רגילה - משאיר תאריך מקורי:', cleanedDate);
+                return cleanedDate; // הזמנה רגילה - משאיר את התאריך המקורי
+                
+            } catch (error) {
+                console.error('שגיאה בקביעת תאריך נכון:', error);
+                return cleanedDate; // במקרה של שגיאה, מחזיר את התאריך המקורי
+            }
+        }
         
         // שליפת הזמנות לפי טווח תאריכים - עם סינון בצד הלקוח
         async function fetchOrdersByDateRange(fromDate, toDate) {
@@ -738,6 +737,50 @@
             }
         }
         
+        // עיבוד נתוני ההזמנות לפי תאריך - כל תושב+תאריך = שורה נפרדת
+        // עם טיפול בהזמנות לילה (חצות-6:00 מוקצות ליום הקודם)
+        function processOrdersDataByDate(orders) {
+            const residentsDataByDate = {};
+            
+            orders.forEach(order => {
+                const name = order.customerName || 'לא צוין';
+                const residenceType = order.residenceType || '';
+                const products = order.products || '';
+                const total = parseInt(order.total) || 0;
+                
+                // קביעת התאריך הנכון (עם טיפול בהזמנות לילה)
+                const correctDate = getCorrectEventDate(order.date, order.time);
+                
+                // מפתח ייחודי לכל תושב+תאריך
+                const key = `${name}|${correctDate}`;
+                
+                if (!residentsDataByDate[key]) {
+                    residentsDataByDate[key] = {
+                        name: name,
+                        residenceType: residenceType,
+                        eventDate: correctDate,
+                        eventDateFormatted: formatDateNice(correctDate),
+                        orders: [],
+                        totalAmount: 0
+                    };
+                }
+                
+                residentsDataByDate[key].orders.push({
+                    products: products,
+                    total: total
+                });
+                residentsDataByDate[key].totalAmount += total;
+            });
+            
+            // המרה למערך וסדר לפי שם ואז לפי תאריך
+            return Object.values(residentsDataByDate).sort((a, b) => {
+                if (a.name !== b.name) {
+                    return a.name.localeCompare(b.name, 'he');
+                }
+                return a.eventDate.localeCompare(b.eventDate);
+            });
+        }
+        
         // אתחול הדף
         document.addEventListener('DOMContentLoaded', function() {
             // הגדרת תאריך היום כברירת מחדל
@@ -796,51 +839,6 @@
             }
         }
         
-      // עיבוד נתוני ההזמנות לפי תאריך - כל תושב+תאריך = שורה נפרדת
-        // עם טיפול בהזמנות לילה (חצות-6:00 מוקצות ליום הקודם)
-        function processOrdersDataByDate(orders) {
-            const residentsDataByDate = {};
-            
-            orders.forEach(order => {
-                const name = order.customerName || 'לא צוין';
-                const residenceType = order.residenceType || '';
-                const products = order.products || '';
-                const total = parseInt(order.total) || 0;
-                
-                // קביעת התאריך הנכון (עם טיפול בהזמנות לילה)
-                const correctDate = getCorrectEventDate(order.date, order.time);
-                
-                // מפתח ייחודי לכל תושב+תאריך
-                const key = `${name}|${correctDate}`;
-                
-                if (!residentsDataByDate[key]) {
-                    residentsDataByDate[key] = {
-                        name: name,
-                        residenceType: residenceType,
-                        eventDate: correctDate,
-                        eventDateFormatted: formatDateNice(correctDate),
-                        orders: [],
-                        totalAmount: 0
-                    };
-                }
-                
-                residentsDataByDate[key].orders.push({
-                    products: products,
-                    total: total
-                });
-                residentsDataByDate[key].totalAmount += total;
-            });
-            
-            // המרה למערך וסדר לפי שם ואז לפי תאריך
-            return Object.values(residentsDataByDate).sort((a, b) => {
-                if (a.name !== b.name) {
-                    return a.name.localeCompare(b.name, 'he');
-                }
-                return a.eventDate.localeCompare(b.eventDate);
-            });
-        }
-        
-
         // הצגת התוצאות
         function displayResults(data) {
             updateStatistics(data);
