@@ -477,6 +477,183 @@
         let currentData = [];
         let showDetails = false;
         
+        // פונקציה לניקוי תאריך (מועתקת מorders.html)
+        function cleanDate(dateStr) {
+            if (!dateStr) return 'לא צוין';
+            
+            const str = dateStr.toString();
+            
+            // אם יש GMT, זה Date object שהומר למחרוזת
+            if (str.includes('GMT')) {
+                // נחפש דפוס של תאריך בסגנון "Mon Jun 30 2025"
+                const dateMatch = str.match(/(\w{3})\s+(\w{3})\s+(\d{1,2})\s+(\d{4})/);
+                if (dateMatch) {
+                    const [, dayName, month, day, year] = dateMatch;
+                    
+                    // המרת חודש לספרות
+                    const months = {
+                        'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04',
+                        'May': '05', 'Jun': '06', 'Jul': '07', 'Aug': '08',
+                        'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'
+                    };
+                    
+                    const monthNum = months[month] || month;
+                    return `${day.padStart(2, '0')}/${monthNum}/${year}`;
+                }
+            }
+            
+            // אם זה כבר נראה כמו תאריך רגיל, נחזיר כמו שזה
+            return str;
+        }
+        
+        // פונקציה לניקוי שעה (מועתקת מorders.html)
+        function cleanTime(timeStr) {
+            if (!timeStr) return 'לא צוין';
+            
+            const str = timeStr.toString();
+            
+            // נחפש דפוס של שעה:דקה:שניה
+            const timeMatch = str.match(/(\d{1,2}):(\d{2}):(\d{2})/);
+            if (timeMatch) {
+                return `${timeMatch[1].padStart(2, '0')}:${timeMatch[2]}`;
+            }
+            
+            // אם זה כבר נראה כמו שעה רגילה, נחזיר כמו שזה
+            return str;
+        }
+        
+        // פונקציה לבדיקה אם הזמנה רלוונטית לאירוע ספציפי (מהתאריך + יום למחרת עד 6:00)
+        function isRelevantForEvent(dateStr, timeStr, eventDate) {
+            if (!dateStr || !timeStr || !eventDate) return false;
+            
+            // יצירת תאריכים לחיפוש
+            const eventDateObj = new Date(eventDate);
+            const nextDay = new Date(eventDateObj);
+            nextDay.setDate(nextDay.getDate() + 1);
+            
+            // ניקוי תאריך ושעה של ההזמנה
+            const cleanedDate = cleanDate(dateStr);
+            const cleanedTime = cleanTime(timeStr);
+            
+            console.log('בודק רלוונטיות לאירוע:', cleanedDate, cleanedTime, 'עבור תאריך אירוע:', eventDate);
+            
+            try {
+                // פרסור התאריך והשעה של ההזמנה
+                const dateMatch = cleanedDate.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+                const timeMatch = cleanedTime.match(/(\d{1,2}):(\d{2})/);
+                
+                if (!dateMatch || !timeMatch) {
+                    console.log('לא הצלחתי לפרסר:', cleanedDate, cleanedTime);
+                    return false;
+                }
+                
+                const [, day, month, year] = dateMatch;
+                const [, hour, minute] = timeMatch;
+                
+                // יצירת תאריך של ההזמנה
+                const orderDate = new Date(
+                    parseInt(year),
+                    parseInt(month) - 1, // חודשים מתחילים מ-0
+                    parseInt(day),
+                    parseInt(hour),
+                    parseInt(minute)
+                );
+                
+                console.log('תאריך הזמנה:', orderDate);
+                console.log('תאריך אירוע:', eventDateObj);
+                console.log('יום למחרת:', nextDay);
+                
+                // בדיקה אם ההזמנה היא:
+                // 1. מתאריך האירוע (כל שעה)
+                const isEventDay = orderDate.toDateString() === eventDateObj.toDateString();
+                
+                // 2. או מהיום שאחרי עד 06:00
+                const isNextDayEarly = orderDate.toDateString() === nextDay.toDateString() && 
+                                       orderDate.getHours() >= 0 && orderDate.getHours() < 6;
+                
+                const isRelevant = isEventDay || isNextDayEarly;
+                console.log('האם רלוונטי:', isRelevant, '(יום האירוע:', isEventDay, ', למחרת מוקדם:', isNextDayEarly, ')');
+                
+                return isRelevant;
+                
+            } catch (error) {
+                console.error('שגיאה בבדיקת זמן לאירוע:', error);
+                return false;
+            }
+        }
+        
+        // שליפת הזמנות לפי תאריך - עם סינון בצד הלקוח
+        async function fetchOrdersByDate(eventDate) {
+            console.log('=== מתחיל fetchOrdersByDate עם סינון בצד הלקוח ===');
+            console.log('תאריך שנשלח:', eventDate);
+            
+            const params = new URLSearchParams({
+                action: 'getRecentOrders',
+                limit: 500  // מביאים 500 הזמנות אחרונות
+            });
+            
+            console.log('פרמטרים שנשלחים:', params.toString());
+            
+            try {
+                console.log('שולח בקשת POST לשרת עבור הזמנות אחרונות...');
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: params
+                });
+                
+                console.log('סטטוס תשובה:', response.status);
+                console.log('תשובה OK?', response.ok);
+                
+                if (!response.ok) {
+                    console.error('שגיאה בתשובת השרת:', response.status, response.statusText);
+                    throw new Error(`שגיאה ${response.status}`);
+                }
+                
+                console.log('מקבל תוכן מהשרת...');
+                const resultText = await response.text();
+                console.log('תוכן גולמי מהשרת:', resultText);
+                console.log('אורך התוכן:', resultText.length);
+                
+                console.log('מנסה לפרסר JSON...');
+                const jsonResult = JSON.parse(resultText);
+                console.log('JSON מפורסר:', jsonResult);
+                
+                if (!jsonResult.success) {
+                    console.error('השרת החזיר שגיאה:', jsonResult.message);
+                    throw new Error(jsonResult.message || 'שגיאה לא ידועה');
+                }
+                
+                const allOrders = jsonResult.orders || [];
+                console.log('מספר הזמנות שהתקבלו מהשרת:', allOrders.length);
+                console.log('דוגמה להזמנה ראשונה:', allOrders[0]);
+                
+                // סינון הזמנות רלוונטיות לאירוע
+                console.log('=== מתחיל סינון הזמנות לאירוע ===');
+                const relevantOrders = allOrders.filter(order => {
+                    const isRelevant = isRelevantForEvent(order.date, order.time, eventDate);
+                    if (!isRelevant) {
+                        console.log('מסנן הזמנה:', order.customerName, order.date, order.time);
+                    }
+                    return isRelevant;
+                });
+                
+                console.log('מספר הזמנות אחרי סינון:', relevantOrders.length);
+                console.log('דוגמה להזמנה רלוונטית:', relevantOrders[0]);
+                
+                return relevantOrders;
+                
+            } catch (error) {
+                console.error('=== שגיאה ב-fetchOrdersByDate ===');
+                console.error('סוג השגיאה:', error.name);
+                console.error('הודעת השגיאה:', error.message);
+                console.error('מקום השגיאה:', error.stack);
+                throw error;
+            }
+        }
+        
         // אתחול הדף
         document.addEventListener('DOMContentLoaded', function() {
             // הגדרת תאריך היום כברירת מחדל
@@ -526,63 +703,6 @@
             }
         }
         
-   // שליפת הזמנות לפי תאריך (כולל יום למחרת עד 6 בבוקר) - גרסה מתוקנת עם POST
-async function fetchOrdersByDate(eventDate) {
-    console.log('=== מתחיל fetchOrdersByDate ===');
-    console.log('תאריך שנשלח:', eventDate);
-    
-    const params = new URLSearchParams({
-        action: 'getOrdersByEvent',
-        eventDate: eventDate
-    });
-    
-    console.log('פרמטרים שנשלחים:', params.toString());
-    
-    try {
-        console.log('שולח בקשת POST לשרת...');
-        const response = await fetch(GOOGLE_SCRIPT_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: params
-        });
-        
-        console.log('סטטוס תשובה:', response.status);
-        console.log('תשובה OK?', response.ok);
-        
-        if (!response.ok) {
-            console.error('שגיאה בתשובת השרת:', response.status, response.statusText);
-            throw new Error(`שגיאה ${response.status}`);
-        }
-        
-        console.log('מקבל תוכן מהשרת...');
-        const resultText = await response.text();
-        console.log('תוכן גולמי מהשרת:', resultText);
-        console.log('אורך התוכן:', resultText.length);
-        
-        console.log('מנסה לפרסר JSON...');
-        const jsonResult = JSON.parse(resultText);
-        console.log('JSON מפורסר:', jsonResult);
-        
-        if (!jsonResult.success) {
-            console.error('השרת החזיר שגיאה:', jsonResult.message);
-            throw new Error(jsonResult.message || 'שגיאה לא ידועה');
-        }
-        
-        console.log('מספר הזמנות שהתקבלו:', jsonResult.orders ? jsonResult.orders.length : 0);
-        console.log('דוגמה להזמנה ראשונה:', jsonResult.orders && jsonResult.orders[0]);
-        
-        return jsonResult.orders || [];
-        
-    } catch (error) {
-        console.error('=== שגיאה ב-fetchOrdersByDate ===');
-        console.error('סוג השגיאה:', error.name);
-        console.error('הודעת השגיאה:', error.message);
-        console.error('מקום השגיאה:', error.stack);
-        throw error;
-    }
-}
         // עיבוד נתוני ההזמנות
         function processOrdersData(orders) {
             const residentsData = {};
