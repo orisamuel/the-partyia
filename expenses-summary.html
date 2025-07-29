@@ -526,7 +526,7 @@
             }
         }
         
-      // שליפת הזמנות לפי תאריך (כולל יום למחרת עד 6 בבוקר) - עם דיבוג מפורט
+   // שליפת הזמנות לפי תאריך (כולל יום למחרת עד 6 בבוקר) - גרסה מתוקנת עם POST
 async function fetchOrdersByDate(eventDate) {
     console.log('=== מתחיל fetchOrdersByDate ===');
     console.log('תאריך שנשלח:', eventDate);
@@ -536,12 +536,17 @@ async function fetchOrdersByDate(eventDate) {
         eventDate: eventDate
     });
     
-    const fullUrl = `${GOOGLE_SCRIPT_URL}?${params.toString()}`;
-    console.log('URL מלא:', fullUrl);
+    console.log('פרמטרים שנשלחים:', params.toString());
     
     try {
-        console.log('שולח בקשה לשרת...');
-        const response = await fetch(fullUrl);
+        console.log('שולח בקשת POST לשרת...');
+        const response = await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: params
+        });
         
         console.log('סטטוס תשובה:', response.status);
         console.log('תשובה OK?', response.ok);
