@@ -582,20 +582,20 @@
             }
         }
         
-        // שליפת הזמנות לפי תאריך - עם סינון בצד הלקוח
+        // שליפת הזמנות לפי תאריך - עם סינון בצד הלקוח מהגיליון הראשי
         async function fetchOrdersByDate(eventDate) {
-            console.log('=== מתחיל fetchOrdersByDate עם סינון בצד הלקוח ===');
+            console.log('=== מתחיל fetchOrdersByDate עם סינון בצד הלקוח מהגיליון הראשי ===');
             console.log('תאריך שנשלח:', eventDate);
             
             const params = new URLSearchParams({
-                action: 'getRecentOrders',
-                limit: 500  // מביאים 500 הזמנות אחרונות
+                action: 'getRecentOrdersFromMain',  // שינוי לפונקציה הנכונה
+                limit: 500  // מביאים 500 הזמנות אחרונות מהגיליון הראשי
             });
             
             console.log('פרמטרים שנשלחים:', params.toString());
             
             try {
-                console.log('שולח בקשת POST לשרת עבור הזמנות אחרונות...');
+                console.log('שולח בקשת POST לשרת עבור הזמנות מהגיליון הראשי...');
                 const response = await fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
                     headers: {
