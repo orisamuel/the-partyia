@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>הזמנות פעילות - הפרתיה</title>
+    <link rel="icon" href="logo.png" type="image/png">
     <style>
         * {
             margin: 0;
@@ -432,7 +433,9 @@
 <body>
     <div class="container">
         <div class="header">
-            <img src="logo.png" alt="לוגו הפרתיה" class="logo">
+        <a href="admin.html">
+    <img src="logo.png" alt="לוגו הפרתיה" class="logo">
+</a>
             <div class="header-text">
                 <h1>הזמנות פעילות</h1>
             </div>
@@ -472,7 +475,7 @@
         let refreshInterval = null;
         let autoStopTimeout = null;
         
-        // פונקציה לטעינת הזמנות מהשרת
+        // פונקציה לטעינת הזמנות מהשרת - מתוקן עם POST
         async function loadOrders() {
             if (!isSystemActive) return;
             
@@ -481,11 +484,15 @@
                 
                 const params = new URLSearchParams({
                     action: 'getRecentOrders',
-                    limit: 100  // יותר הזמנות כדי לתת מקום לפילטור
+                    limit: 100
                 });
                 
-                const response = await fetch(`${GOOGLE_SCRIPT_URL}?${params.toString()}`, {
-                    method: 'GET'
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: params
                 });
                 
                 console.log('תגובה:', response.status);
@@ -839,6 +846,7 @@
         }
         
         // פונקציה לעדכון סטטוס בגיליון
+         // פונקציה לעדכון סטטוס בגיליון - מתוקן עם POST
         async function updateStatusInSheet(itemId, newStatus) {
             try {
                 const params = new URLSearchParams({
@@ -847,10 +855,14 @@
                     newStatus: newStatus
                 });
                 
-                console.log('URL שנשלח:', `${GOOGLE_SCRIPT_URL}?${params.toString()}`);
+                console.log('URL שנשלח:', params.toString());
                 
-                const response = await fetch(`${GOOGLE_SCRIPT_URL}?${params.toString()}`, {
-                    method: 'GET'
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: params
                 });
                 
                 console.log('Response status:', response.status);
