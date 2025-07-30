@@ -197,12 +197,6 @@
             border-color: #E67E22;
         }
         
-        input[type="text"]:read-only {
-            background-color: #f8f9fa;
-            color: #6c757d;
-            cursor: pointer;
-        }
-        
         input[type="text"]:disabled {
             background-color: #f0f0f0;
             color: #999;
@@ -619,7 +613,7 @@
                                 <label for="customerName">שם המזמין:</label>
                                 <div class="name-input-container">
                                     <input type="text" id="customerName" name="customerName" required 
-                                           placeholder="בחר שם מהרשימה..." disabled autocomplete="off" inputmode="text">
+                                           placeholder="הקלד לחיפוש בתושבים..." disabled autocomplete="off" inputmode="text">
                                     <div class="autocomplete-list" id="autocompleteList"></div>
                                 </div>
                                 <div class="guest-toggle">
@@ -804,8 +798,7 @@
                 setTimeout(() => {
                     const nameInput = document.getElementById('customerName');
                     nameInput.disabled = false;
-                    nameInput.placeholder = 'בחר שם מהרשימה...';
-                    nameInput.readOnly = true;
+                    nameInput.placeholder = 'הקלד לחיפוש בתושבים...';
                     
                     updateLoadingProgress('הכל מוכן! כניסה למערכת...');
                     setTimeout(hideLoadingScreen, 800);
@@ -885,7 +878,7 @@
             });
         }
         
-        // Autocomplete לשמות תושבים
+        // Autocomplete לשמות תושבים - מתוקן ללא readOnly
         function setupAutocomplete() {
             const nameInput = document.getElementById('customerName');
             const autocompleteList = document.getElementById('autocompleteList');
@@ -893,9 +886,6 @@
             const kfarAdumimBtn = document.getElementById('kfarAdumimBtn');
             const alonBtn = document.getElementById('alonBtn');
             const validationMsg = document.getElementById('nameValidationMsg');
-            
-            // הגדרת readonly דרך JavaScript
-            nameInput.readOnly = true;
             
             // פונקציה לאיפוס כל הכפתורים
             function resetAllButtons() {
@@ -915,7 +905,6 @@
                 btn.textContent = '✓ נבחר: ' + type;
                 
                 nameInput.placeholder = placeholder;
-                nameInput.readOnly = false;
                 autocompleteList.style.display = 'none';
                 isGuestMode = true;
                 currentResidenceType = type;
@@ -950,8 +939,7 @@
             // פונקציה לחזור למצב רשימה
             function returnToListMode() {
                 resetAllButtons();
-                nameInput.placeholder = 'בחר שם מהרשימה...';
-                nameInput.readOnly = true;
+                nameInput.placeholder = 'הקלד לחיפוש בתושבים...';
                 nameInput.value = '';
                 isGuestMode = false;
                 currentResidenceType = '';
@@ -989,18 +977,6 @@
                 }
             });
             
-            // פתיחת שדה לחיפוש - גם על לחיצה וגם על focus
-            const enableSearchMode = () => {
-                if (!isGuestMode) {
-                    nameInput.readOnly = false;
-                    nameInput.placeholder = 'הקלד לחיפוש...';
-                    nameInput.focus();
-                }
-            };
-            
-            nameInput.addEventListener('focus', enableSearchMode);
-            nameInput.addEventListener('click', enableSearchMode);
-            
             // Autocomplete
             nameInput.addEventListener('input', (e) => {
                 if (isGuestMode) {
@@ -1015,7 +991,7 @@
                 if (query.length < 1) {
                     autocompleteList.style.display = 'none';
                     selectedAutocompleteIndex = -1;
-                    showValidationMessage('בחר שם מהรשימה או לחץ על אחד מהכפתורים');
+                    showValidationMessage('בחר שם מהרשימה או לחץ על אחד מהכפתורים');
                     updateSubmitButton();
                     return;
                 }
@@ -1062,8 +1038,7 @@
             
             function selectResident(resident) {
                 nameInput.value = resident.fullName;
-                nameInput.readOnly = true;
-                nameInput.placeholder = 'בחר שם מהרשימה...';
+                nameInput.placeholder = 'הקלד לחיפוש בתושבים...';
                 autocompleteList.style.display = 'none';
                 selectedAutocompleteIndex = -1;
                 isValidSelection = true;
@@ -1102,8 +1077,7 @@
                     autocompleteList.style.display = 'none';
                     selectedAutocompleteIndex = -1;
                     nameInput.blur();
-                    nameInput.readOnly = true;
-                    nameInput.placeholder = 'בחר שם מהרשימה...';
+                    nameInput.placeholder = 'הקלד לחיפוש בתושבים...';
                 }
             });
             
@@ -1112,8 +1086,7 @@
                     autocompleteList.style.display = 'none';
                     selectedAutocompleteIndex = -1;
                     if (!isGuestMode && !isValidSelection) {
-                        nameInput.readOnly = true;
-                        nameInput.placeholder = 'בחר שם מהרשימה...';
+                        nameInput.placeholder = 'הקלד לחיפוש בתושבים...';
                     }
                 }
             });
@@ -1376,8 +1349,7 @@
             const existingMsg = document.getElementById('active-residence-msg');
             if (existingMsg) existingMsg.remove();
             
-            nameInput.readOnly = true;
-            nameInput.placeholder = 'בחר שם מהרשימה...';
+            nameInput.placeholder = 'הקלד לחיפוש בתושבים...';
             isGuestMode = false;
             currentResidenceType = '';
             isValidSelection = false;
