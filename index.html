@@ -16,7 +16,6 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #E67E22 0%, #D35400 50%, #A0522D 100%);
             min-height: 100vh;
-            padding: 20px;
         }
         
         /* מסך טעינה */
@@ -98,6 +97,7 @@
         .main-content {
             opacity: 0;
             transition: opacity 0.8s ease;
+            padding: 15px;
         }
         
         .main-content.visible {
@@ -105,48 +105,62 @@
         }
         
         .container {
-            max-width: 800px;
+            max-width: 1400px;
             margin: 0 auto;
             background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            border-radius: 16px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.1);
             overflow: hidden;
         }
         
+        /* Header מודרני */
         .header {
-            background: linear-gradient(135deg, #FFF8DC 0%, #F5F5DC 100%);
-            color: #8B4513;
-            padding: 20px 20px;
-            text-align: center;
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 20px 40px;
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 20px;
-            border-bottom: 3px solid #E67E22;
+            justify-content: space-between;
         }
         
-        .logo {
-            width: 180px;
-            height: 180px;
-            border-radius: 50%;
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .header-logo {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
             object-fit: cover;
             cursor: pointer;
-            transition: transform 0.3s;
-        }
-        
-        .logo:hover {
-            transform: scale(1.05);
-        }
-        
-        .header-text {
-            text-align: right;
         }
         
         .header-text h1 {
+            font-size: 24px;
+            font-weight: 600;
             margin: 0;
-            font-size: 32px;
-            font-weight: bold;
-            color: #8B4513;
+        }
+        
+        .header-text p {
+            font-size: 14px;
+            opacity: 0.8;
+            margin: 0;
+        }
+        
+        .admin-link {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 13px;
+            transition: background 0.3s;
+        }
+        
+        .admin-link:hover {
+            background: rgba(255,255,255,0.2);
         }
         
         .content {
@@ -155,46 +169,60 @@
         
         .form-layout {
             display: grid;
-            grid-template-columns: 2fr 1fr;
+            grid-template-columns: 2fr 350px;
             gap: 40px;
             align-items: start;
         }
         
+        /* עמודה ראשית */
+        .form-main {
+            
+        }
+        
         .form-group {
-            margin-bottom: 25px;
+            margin-bottom: 30px;
         }
         
-        .form-sidebar {
-            /* העמודה הצדדית עם סיכום וכפתור */
-        }
-        
-        .desktop-only {
-            display: block;
-        }
-        
-        .mobile-only {
-            display: none;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
             color: #2c3e50;
+            margin-bottom: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 20px;
+            background: #E67E22;
+            border-radius: 2px;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 15px;
         }
         
         input[type="text"], input[type="number"] {
             width: 100%;
-            padding: 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
+            padding: 16px 20px;
+            border: 2px solid #e8ecef;
+            border-radius: 12px;
             font-size: 16px;
-            transition: border-color 0.3s;
+            transition: all 0.3s;
         }
         
         input[type="text"]:focus, input[type="number"]:focus {
             outline: none;
             border-color: #E67E22;
+            box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.1);
         }
         
         input[type="text"]:disabled {
@@ -203,7 +231,7 @@
             cursor: not-allowed;
         }
         
-        /* סגנון לAutocomplete */
+        /* Autocomplete */
         .name-input-container {
             position: relative;
         }
@@ -240,133 +268,143 @@
         }
         
         .guest-toggle {
-            margin-top: 10px;
             display: flex;
-            gap: 8px;
+            gap: 10px;
             flex-wrap: wrap;
         }
         
         .guest-btn {
-            background: #6c757d;
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 15px;
+            background: white;
+            color: #6c757d;
+            border: 2px solid #e8ecef;
+            padding: 12px 16px;
+            border-radius: 10px;
             font-size: 13px;
+            font-weight: 500;
             cursor: pointer;
             transition: all 0.3s;
-            flex: 1;
-            min-width: 120px;
+            text-align: center;
         }
         
         .guest-btn:hover {
-            background: #5a6268;
+            border-color: #E67E22;
+            color: #E67E22;
         }
         
         .guest-btn.active {
             background: #E67E22;
-            transform: scale(1.05);
-            box-shadow: 0 4px 12px rgba(230, 126, 34, 0.4);
-            border: 2px solid #D35400;
-        }
-        
-        .kfar-btn {
-            background: #28a745;
-        }
-        
-        .kfar-btn:hover {
-            background: #218838;
+            color: white;
+            border-color: #E67E22;
         }
         
         .kfar-btn.active {
-            background: #1e7e34;
-            transform: scale(1.05);
-            box-shadow: 0 4px 12px rgba(30, 126, 52, 0.4);
-            border: 2px solid #155724;
-        }
-        
-        .alon-btn {
-            background: #17a2b8;
-        }
-        
-        .alon-btn:hover {
-            background: #138496;
+            background: #28a745;
+            border-color: #28a745;
         }
         
         .alon-btn.active {
-            background: #117a8b;
-            transform: scale(1.05);
-            box-shadow: 0 4px 12px rgba(17, 122, 139, 0.4);
-            border: 2px solid #0c5460;
+            background: #17a2b8;
+            border-color: #17a2b8;
         }
         
-        /* עיצוב מוצרים - גריד קבוע */
-        .products-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr); /* 4 עמודות בדסקטופ */
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        
-        .product-btn {
-            background: #f8f9fa;
-            border: 2px solid #e9ecef;
-            border-radius: 15px;
-            padding: 20px 10px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
+        .name-validation-msg {
+            display: none;
+            color: #dc3545;
             font-size: 14px;
-            font-weight: bold;
-        }
-        
-        .product-btn:hover {
-            background: #E67E22;
-            color: white;
-            transform: translateY(-2px);
-        }
-        
-        .product-btn.selected {
-            background: #D35400;
-            color: white;
-            border-color: #D35400;
-        }
-        
-        .price {
-            font-size: 16px;
-            color: #D35400;
             margin-top: 5px;
         }
         
-        .product-btn.selected .price {
+        /* גריד מוצרים - קרטים מודרניים */
+        .loading-indicator {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-style: italic;
+        }
+        
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .product-card {
+            background: white;
+            border: 1px solid #e8ecef;
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .product-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            border-color: #E67E22;
+        }
+        
+        .product-card.selected {
+            border-color: #E67E22;
+            background: linear-gradient(135deg, #E67E22, #D35400);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(230, 126, 34, 0.25);
+        }
+        
+        .product-emoji {
+            font-size: 28px;
+            margin-bottom: 6px;
+            display: block;
+        }
+        
+        .product-name {
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            line-height: 1.2;
+        }
+        
+        .product-price {
+            font-size: 14px;
+            font-weight: bold;
+            color: #E67E22;
+            margin-bottom: 8px;
+        }
+        
+        .product-card.selected .product-price {
             color: white;
         }
         
         .quantity-controls {
             display: none;
-            margin-top: 10px;
-            align-items: center;
             justify-content: center;
-            gap: 10px;
+            align-items: center;
+            gap: 6px;
+            margin-top: 6px;
         }
         
-        .product-btn.selected .quantity-controls {
+        .product-card.selected .quantity-controls {
             display: flex;
         }
         
         .quantity-btn {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
             background: rgba(255,255,255,0.2);
             border: 1px solid rgba(255,255,255,0.3);
             color: white;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             font-weight: bold;
-            font-size: 18px;
+            font-size: 12px;
+            transition: all 0.2s;
         }
         
         .quantity-btn:hover {
@@ -376,9 +414,103 @@
         .quantity-display {
             color: white;
             font-weight: bold;
-            font-size: 18px;
-            min-width: 20px;
+            font-size: 14px;
+            min-width: 18px;
             text-align: center;
+        }
+        
+        /* עמודה ימנית - סיכום */
+        .form-sidebar {
+            background: #f8f9fa;
+            border-radius: 16px;
+            padding: 25px;
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+        
+        .sidebar-section {
+            margin-bottom: 20px;
+        }
+        
+        .financial-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .financial-card {
+            flex: 1;
+            padding: 16px;
+            border-radius: 12px;
+            border: 2px solid;
+        }
+        
+        .custom-amount {
+            background: linear-gradient(135deg, #e8f5e8, #f0fff0);
+            border-color: #28a745;
+        }
+        
+        .custom-amount .card-icon {
+            color: #28a745;
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+        
+        .custom-amount label {
+            color: #28a745;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        .discount-amount {
+            background: linear-gradient(135deg, #fff3cd, #fef9e7);
+            border-color: #ffc107;
+        }
+        
+        .discount-amount .card-icon {
+            color: #ffc107;
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+        
+        .discount-amount label {
+            color: #856404;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        .financial-card input {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid rgba(0,0,0,0.1);
+            border-radius: 6px;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+        
+        .total-section {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .total-amount {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .total-label {
+            font-size: 14px;
+            opacity: 0.8;
         }
         
         .submit-btn {
@@ -387,17 +519,17 @@
             color: white;
             border: none;
             padding: 18px;
-            border-radius: 15px;
-            font-size: 18px;
-            font-weight: bold;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
             margin-bottom: 20px;
         }
         
         .submit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(230, 126, 34, 0.3);
+            transform: translateY(-1px);
+            box-shadow: 0 8px 25px rgba(230, 126, 34, 0.3);
         }
         
         .submit-btn:disabled {
@@ -428,12 +560,6 @@
             transform: translate(-50%, -50%);
         }
         
-        .status.info {
-            background: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
-        }
-        
         .status {
             text-align: center;
             padding: 15px;
@@ -454,14 +580,10 @@
             border: 1px solid #f5c6cb;
         }
         
-        .total {
-            background: #e9ecef;
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 20px;
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
         }
         
         .recent-orders {
@@ -486,13 +608,15 @@
             align-items: center;
         }
         
-        .loading-indicator {
-            text-align: center;
-            padding: 20px;
-            color: #666;
-            font-style: italic;
+        .desktop-only {
+            display: block;
         }
         
+        .mobile-only {
+            display: none;
+        }
+        
+        /* מובייל */
         @media (max-width: 768px) {
             .loading-title {
                 font-size: 24px;
@@ -507,13 +631,17 @@
                 height: 120px;
             }
             
+            .main-content {
+                padding: 10px;
+            }
+            
             .container {
-                margin: 10px;
                 max-width: none;
+                margin: 0;
             }
             
             .content {
-                padding: 30px 20px;
+                padding: 20px;
             }
             
             .form-layout {
@@ -522,38 +650,22 @@
             }
             
             .products-grid {
-                grid-template-columns: repeat(3, 1fr); /* 3 עמודות בטאבלט */
-                gap: 15px;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 12px;
+            }
+            
+            .product-card {
+                padding: 12px;
             }
             
             .guest-toggle {
-                flex-direction: column;
+                grid-template-columns: 1fr;
                 gap: 8px;
             }
             
-            .guest-btn {
-                min-width: auto;
-                font-size: 12px;
-                padding: 8px 10px;
-            }
-            
-            .header {
+            .financial-row {
                 flex-direction: column;
-                gap: 15px;
-                padding: 20px 20px;
-            }
-            
-            .logo {
-                width: 120px;
-                height: 120px;
-            }
-            
-            .header-text {
-                text-align: center;
-            }
-            
-            .header-text h1 {
-                font-size: 24px;
+                gap: 10px;
             }
             
             .desktop-only {
@@ -563,22 +675,45 @@
             .mobile-only {
                 display: block;
             }
+            
+            .header {
+                padding: 15px 20px;
+            }
+            
+            .header-left {
+                gap: 10px;
+            }
+            
+            .header-logo {
+                width: 40px;
+                height: 40px;
+            }
+            
+            .header-text h1 {
+                font-size: 18px;
+            }
+            
+            .header-text p {
+                font-size: 12px;
+            }
         }
         
         @media (max-width: 480px) {
             .products-grid {
                 grid-template-columns: repeat(2, 1fr);
-                gap: 12px;
+                gap: 10px;
             }
             
-            .product-btn {
-                padding: 15px 8px;
-                font-size: 13px;
+            .product-card {
+                padding: 10px;
             }
             
-            .guest-btn {
-                font-size: 11px;
-                padding: 6px 8px;
+            .product-emoji {
+                font-size: 28px;
+            }
+            
+            .product-name {
+                font-size: 12px;
             }
         }
     </style>
@@ -597,35 +732,39 @@
     <div class="main-content" id="mainContent">
         <div class="container">
             <div class="header">
-                <a href="admin.html">
-                    <img src="logo.png" alt="לוגו הפרתיה" class="logo">
-                </a>
-                <div class="header-text">
-                    <h1>רישום הזמנות</h1>
+                <div class="header-left">
+                    <img src="logo.png" alt="לוגו הפרתיה" class="header-logo">
+                    <div class="header-text">
+                        <h1>הפרתיה - רישום הזמנות</h1>
+                        <p>פאב קהילתי נופי פרת</p>
+                    </div>
                 </div>
+                <a href="admin.html" class="admin-link">🔧 כלי ניהול</a>
             </div>
             
             <div class="content">
                 <form id="orderForm">
                     <div class="form-layout">
+                        <!-- עמודה ראשית -->
                         <div class="form-main">
                             <div class="form-group">
-                                <label for="customerName">שם המזמין:</label>
+                                <div class="section-header">
+                                    <div class="section-title">🍻 מי בא לשתות?</div>
+                                    <div class="guest-toggle">
+                                        <button type="button" id="guestBtn" class="guest-btn">תושב נופי פרת שאינו ברשימה</button>
+                                        <button type="button" id="kfarAdumimBtn" class="guest-btn kfar-btn">כפר אדומים</button>
+                                        <button type="button" id="alonBtn" class="guest-btn alon-btn">אלון</button>
+                                    </div>
+                                </div>
                                 <div class="name-input-container">
                                     <input type="text" id="customerName" name="customerName" required 
-                                           placeholder="הקלד לחיפוש בתושבים..." disabled autocomplete="off" inputmode="text">
+                                           placeholder="לדוג' - נופית פרתוש" disabled autocomplete="off" inputmode="text">
                                     <div class="autocomplete-list" id="autocompleteList"></div>
                                 </div>
-                                <div class="guest-toggle">
-                                    <button type="button" id="guestBtn" class="guest-btn">תושב נופי פרת שאינו ברשימה</button>
-                                    <button type="button" id="kfarAdumimBtn" class="guest-btn kfar-btn">כפר אדומים</button>
-                                    <button type="button" id="alonBtn" class="guest-btn alon-btn">אלון</button>
-                                </div>
-                                <div class="name-validation-msg" id="nameValidationMsg" style="display: none; color: #dc3545; font-size: 14px; margin-top: 5px;"></div>
+                                <div class="name-validation-msg" id="nameValidationMsg"></div>
                             </div>
                             
                             <div class="form-group">
-                                <label>בחר מוצרים:</label>
                                 <div class="loading-indicator" id="productsLoading">
                                     טוען מוצרים...
                                 </div>
@@ -639,7 +778,7 @@
                                 <label for="customAmount">סכום חופשי (אופציונלי):</label>
                                 <div style="display: flex; gap: 10px; align-items: center;">
                                     <input type="number" id="customAmount" placeholder="₪0" style="flex: 1;" min="0">
-                                    <input type="text" id="customDescription" placeholder="תיאור (למשל: טיפ)" style="flex: 2;">
+                                    <input type="text" id="customDescription" placeholder="לדוג' טיפ" style="flex: 2;">
                                 </div>
                             </div>
                             
@@ -648,36 +787,38 @@
                                 <label for="discountAmount">הנחה (אופציונלי):</label>
                                 <div style="display: flex; gap: 10px; align-items: center;">
                                     <input type="number" id="discountAmount" placeholder="₪0" style="flex: 1;" min="0">
-                                    <input type="text" id="discountDescription" placeholder="סיבת ההנחה" style="flex: 2;">
+                                    <input type="text" id="discountDescription" placeholder="לדוג' שת''פ" style="flex: 2;">
                                 </div>
                             </div>
                         </div>
                         
+                        <!-- עמודה ימנית -->
                         <div class="form-sidebar">
-                            <!-- סכום חופשי - רק בדסקטופ -->
-                            <div class="form-group desktop-only">
-                                <label for="customAmountDesktop">סכום חופשי (אופציונלי):</label>
-                                <div style="display: flex; flex-direction: column; gap: 10px;">
-                                    <input type="number" id="customAmountDesktop" placeholder="₪0" min="0">
-                                    <input type="text" id="customDescriptionDesktop" placeholder="תיאור (למשל: טיפ)">
+                            <div class="sidebar-section desktop-only">
+                                <div class="financial-row">
+                                    <div class="financial-card custom-amount">
+                                        <div class="card-icon">💰</div>
+                                        <label>תשלום נוסף</label>
+                                        <input type="number" id="customAmountDesktop" placeholder="₪0" min="0">
+                                        <input type="text" id="customDescriptionDesktop" placeholder="לדוג' טיפ">
+                                    </div>
+                                    
+                                    <div class="financial-card discount-amount">
+                                        <div class="card-icon">🎁</div>
+                                        <label>הנחה</label>
+                                        <input type="number" id="discountAmountDesktop" placeholder="₪0" min="0">
+                                        <input type="text" id="discountDescriptionDesktop" placeholder="לדוג' שת''פ">
+                                    </div>
                                 </div>
                             </div>
                             
-                            <!-- הנחה - רק בדסקטופ -->
-                            <div class="form-group desktop-only">
-                                <label for="discountAmountDesktop">הנחה (אופציונלי):</label>
-                                <div style="display: flex; flex-direction: column; gap: 10px;">
-                                    <input type="number" id="discountAmountDesktop" placeholder="₪0" min="0">
-                                    <input type="text" id="discountDescriptionDesktop" placeholder="סיבת ההנחה">
-                                </div>
-                            </div>
-                            
-                            <div class="total" id="totalAmount">
-                                סכום כולל: ₪0
+                            <div class="total-section">
+                                <div class="total-amount" id="totalAmount">₪0</div>
+                                <div class="total-label">סכום כולל</div>
                             </div>
                             
                             <button type="submit" class="submit-btn" id="submitBtn" disabled>
-                                אישור הזמנה
+                                ✅ אישור הזמנה
                             </button>
                             
                             <div id="status"></div>
@@ -783,7 +924,7 @@
                     const residentsResult = await residentsResponse.json();
                     if (residentsResult.success) {
                         RESIDENTS = residentsResult.residents;
-                        console.log('נטענו', RESIDENTS.length, 'תושבים');
+                        console.log('נטענו', RESIDENTS.length, 'תושbים');
                     } else {
                         console.error('שגיאה בטעינת תושבים:', residentsResult.message);
                         showStatus('שגיאה בטעינת התושבים', 'error');
@@ -798,7 +939,7 @@
                 setTimeout(() => {
                     const nameInput = document.getElementById('customerName');
                     nameInput.disabled = false;
-                    nameInput.placeholder = 'הקלד לחיפוש בתושבים...';
+                    nameInput.placeholder = 'לדוג\' - נופית פרתוש';
                     
                     updateLoadingProgress('הכל מוכן! כניסה למערכת...');
                     setTimeout(hideLoadingScreen, 800);
@@ -824,14 +965,15 @@
             grid.innerHTML = '';
             
             PRODUCTS.forEach(product => {
-                const productBtn = document.createElement('div');
-                productBtn.className = 'product-btn';
-                productBtn.dataset.product = product.name;
-                productBtn.dataset.price = product.price;
+                const productCard = document.createElement('div');
+                productCard.className = 'product-card';
+                productCard.dataset.product = product.name;
+                productCard.dataset.price = product.price;
                 
-                productBtn.innerHTML = `
-                    <div>${product.emoji} ${product.name}</div>
-                    <div class="price">₪${product.price}</div>
+                productCard.innerHTML = `
+                    <div class="product-emoji">${product.emoji}</div>
+                    <div class="product-name">${product.name}</div>
+                    <div class="product-price">₪${product.price}</div>
                     <div class="quantity-controls">
                         <div class="quantity-btn minus-btn">-</div>
                         <div class="quantity-display" id="qty-${product.name}">1</div>
@@ -839,7 +981,7 @@
                     </div>
                 `;
                 
-                grid.appendChild(productBtn);
+                grid.appendChild(productCard);
             });
             
             // הסתרת הloading והצגת הגריד
@@ -851,13 +993,13 @@
         
         // Event listeners למוצרים
         function setupEventListeners() {
-            document.querySelectorAll('.product-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
+            document.querySelectorAll('.product-card').forEach(card => {
+                card.addEventListener('click', (e) => {
                     if (e.target.classList.contains('quantity-btn')) return;
                     
-                    const productName = btn.dataset.product;
-                    const price = parseInt(btn.dataset.price);
-                    toggleProduct(productName, price, btn);
+                    const productName = card.dataset.product;
+                    const price = parseInt(card.dataset.price);
+                    toggleProduct(productName, price, card);
                 });
             });
             
@@ -939,7 +1081,7 @@
             // פונקציה לחזור למצב רשימה
             function returnToListMode() {
                 resetAllButtons();
-                nameInput.placeholder = 'הקלד לחיפוש בתושבים...';
+                nameInput.placeholder = 'לדוג\' - נופית פרתוש';
                 nameInput.value = '';
                 isGuestMode = false;
                 currentResidenceType = '';
@@ -1038,7 +1180,7 @@
             
             function selectResident(resident) {
                 nameInput.value = resident.fullName;
-                nameInput.placeholder = 'הקלד לחיפוש בתושבים...';
+                nameInput.placeholder = 'לדוג\' - נופית פרתוש';
                 autocompleteList.style.display = 'none';
                 selectedAutocompleteIndex = -1;
                 isValidSelection = true;
@@ -1077,7 +1219,7 @@
                     autocompleteList.style.display = 'none';
                     selectedAutocompleteIndex = -1;
                     nameInput.blur();
-                    nameInput.placeholder = 'הקלד לחיפוש בתושבים...';
+                    nameInput.placeholder = 'לדוג\' - נופית פרתוש';
                 }
             });
             
@@ -1086,7 +1228,7 @@
                     autocompleteList.style.display = 'none';
                     selectedAutocompleteIndex = -1;
                     if (!isGuestMode && !isValidSelection) {
-                        nameInput.placeholder = 'הקלד לחיפוש בתושבים...';
+                        nameInput.placeholder = 'לדוג\' - נופית פרתוש';
                     }
                 }
             });
@@ -1102,13 +1244,13 @@
             });
         }
         
-        function toggleProduct(productName, price, btn) {
+        function toggleProduct(productName, price, card) {
             if (selectedItems[productName]) {
                 delete selectedItems[productName];
-                btn.classList.remove('selected');
+                card.classList.remove('selected');
             } else {
                 selectedItems[productName] = { price: price, quantity: 1 };
-                btn.classList.add('selected');
+                card.classList.add('selected');
                 document.getElementById(`qty-${productName}`).textContent = '1';
             }
             
@@ -1123,8 +1265,8 @@
             
             if (newQuantity <= 0) {
                 delete selectedItems[productName];
-                const btn = document.querySelector(`[data-product="${productName}"]`);
-                btn.classList.remove('selected');
+                const card = document.querySelector(`[data-product="${productName}"]`);
+                card.classList.remove('selected');
             } else {
                 selectedItems[productName].quantity = newQuantity;
                 document.getElementById(`qty-${productName}`).textContent = newQuantity;
@@ -1148,7 +1290,7 @@
             
             const total = Math.max(0, productsTotal + customAmount - discountAmount);
             
-            document.getElementById('totalAmount').textContent = `סכום כולל: ₪${total}`;
+            document.getElementById('totalAmount').textContent = `₪${total}`;
         }
         
         function updateSubmitButton() {
@@ -1304,7 +1446,7 @@
                 submitBtn.textContent = originalText;
                 submitBtn.disabled = false;
                 
-                showStatus('שגיאה בחיבור לשרת: ' + error.message, 'error');
+                showStatus('שגיאה בחிבור לשרת: ' + error.message, 'error');
             }
             
             updateRecentOrders();
@@ -1349,14 +1491,14 @@
             const existingMsg = document.getElementById('active-residence-msg');
             if (existingMsg) existingMsg.remove();
             
-            nameInput.placeholder = 'הקלד לחיפוש בתושבים...';
+            nameInput.placeholder = 'לדוג\' - נופית פרתוש';
             isGuestMode = false;
             currentResidenceType = '';
             isValidSelection = false;
             validationMsg.style.display = 'none';
             
-            document.querySelectorAll('.product-btn').forEach(btn => {
-                btn.classList.remove('selected');
+            document.querySelectorAll('.product-card').forEach(card => {
+                card.classList.remove('selected');
             });
             
             updateTotal();
