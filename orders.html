@@ -19,6 +19,91 @@
             padding: 20px;
         }
         
+        /* מסך טעינה */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #E67E22 0%, #D35400 50%, #A0522D 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+        }
+        
+        .loading-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+        
+        .loading-logo {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 20px;
+            animation: pulse 2s ease-in-out infinite;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+        }
+        
+        .loading-title {
+            color: #FFF8DC;
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .loading-subtitle {
+            color: #F5F5DC;
+            font-size: 16px;
+            margin-bottom: 30px;
+            text-align: center;
+            opacity: 0.9;
+        }
+        
+        .loading-progress {
+            color: #FFF8DC;
+            font-size: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            min-height: 24px;
+        }
+        
+        .loading-spinner {
+            width: 35px;
+            height: 35px;
+            border: 4px solid rgba(255, 248, 220, 0.3);
+            border-top: 4px solid #FFF8DC;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* עמוד ראשי - מוסתר בהתחלה */
+        .main-content {
+            opacity: 0;
+            transition: opacity 0.8s ease;
+        }
+        
+        .main-content.visible {
+            opacity: 1;
+        }
+        
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -32,12 +117,16 @@
             background: linear-gradient(135deg, #FFF8DC 0%, #F5F5DC 100%);
             color: #8B4513;
             padding: 20px 40px;
-            text-align: center;
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 20px;
+            justify-content: space-between;
             border-bottom: 3px solid #E67E22;
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
         }
         
         .logo {
@@ -54,54 +143,54 @@
             color: #8B4513;
         }
         
-        .content {
-            padding: 30px 40px;
+        .header-control {
+            display: flex;
+            align-items: center;
+            gap: 15px;
         }
         
-        .control-panel {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            text-align: center;
-            border: 2px solid #e9ecef;
-        }
-        
-        .start-btn {
-            background: linear-gradient(135deg, #28a745, #20c997);
+        .control-btn-small {
+            background: linear-gradient(135deg, #dc3545, #c82333);
             color: white;
             border: none;
-            padding: 15px 30px;
-            border-radius: 25px;
-            font-size: 18px;
+            padding: 8px 16px;
+            border-radius: 15px;
+            font-size: 13px;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s;
-            margin-left: 10px;
         }
         
-        .start-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+        .control-btn-small:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(220, 53, 69, 0.3);
         }
         
-        .start-btn.active {
-            background: linear-gradient(135deg, #dc3545, #c82333);
+        .control-btn-small.stopped {
+            background: linear-gradient(135deg, #28a745, #20c997);
         }
         
-        .start-btn.active:hover {
-            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
+        .control-btn-small.stopped:hover {
+            box-shadow: 0 3px 10px rgba(40, 167, 69, 0.3);
         }
         
-        .status-info {
-            margin-top: 15px;
-            font-size: 14px;
+        .status-info-small {
+            font-size: 12px;
             color: #666;
         }
         
-        .status-info.active {
+        .status-info-small.active {
             color: #28a745;
             font-weight: bold;
+        }
+        
+        .status-info-small.paused {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        
+        .content {
+            padding: 30px 40px;
         }
         
         .orders-table {
@@ -296,15 +385,14 @@
             margin-right: 10px;
         }
         
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
         /* רספונסיביות */
         @media (max-width: 768px) {
+            .main-content {
+                padding: 10px;
+            }
+            
             .container {
-                margin: 10px;
+                margin: 0;
                 max-width: none;
             }
             
@@ -318,12 +406,34 @@
                 padding: 20px;
             }
             
+            .header-left {
+                order: 1;
+            }
+            
+            .header-control {
+                order: 2;
+                align-self: center;
+            }
+            
+            .header-left {
+                gap: 15px;
+            }
+            
             .logo {
                 width: 60px;
                 height: 60px;
             }
             
             .header-text h1 {
+                font-size: 24px;
+            }
+            
+            .loading-logo {
+                width: 100px;
+                height: 100px;
+            }
+            
+            .loading-title {
                 font-size: 24px;
             }
             
@@ -372,14 +482,6 @@
         }
         
         @media (max-width: 480px) {
-            .container {
-                margin: 5px;
-            }
-            
-            .content {
-                padding: 15px 10px;
-            }
-            
             .orders-table {
                 font-size: 12px;
             }
@@ -419,47 +521,50 @@
                 padding: 8px 14px;
             }
             
-            .control-panel {
-                padding: 15px;
-            }
-            
-            .start-btn {
-                padding: 12px 20px;
-                font-size: 16px;
+            .control-btn-small {
+                padding: 6px 12px;
+                font-size: 12px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-        <a href="admin.html">
-    <img src="logo.png" alt="לוגו הפרתיה" class="logo">
-</a>
-            <div class="header-text">
-                <h1>הזמנות פעילות</h1>
-            </div>
-        </div>
-        
-        <div class="content">
-            <div class="control-panel">
-                <button id="toggleBtn" class="start-btn">
-                    הפעל מערכת
-                </button>
-                <div id="statusInfo" class="status-info">
-                    המערכת כבויה - לחץ להפעלה
-                </div>
-                <div style="margin-top: 15px; text-align: center;">
-                    <a href="admin.html" style="color: #E67E22; text-decoration: none; font-weight: bold; font-size: 14px;">
-                        🔧 מעבר לכלי ניהול
+    <!-- מסך טעינה -->
+    <div class="loading-screen" id="loadingScreen">
+        <img src="logo.png" alt="לוגו הפרתיה" class="loading-logo">
+        <h1 class="loading-title">הזמנות פעילות</h1>
+        <p class="loading-subtitle">טוען מערכת בר...</p>
+        <div class="loading-progress" id="loadingProgress">מתחבר לשרת...</div>
+        <div class="loading-spinner"></div>
+    </div>
+
+    <!-- תוכן ראשי -->
+    <div class="main-content" id="mainContent">
+        <div class="container">
+            <div class="header">
+                <div class="header-left">
+                    <a href="admin.html">
+                        <img src="logo.png" alt="לוגו הפרתיה" class="logo">
                     </a>
+                    <div class="header-text">
+                        <h1>הזמנות פעילות</h1>
+                    </div>
+                </div>
+                <div class="header-control">
+                    <div>
+                        <button id="toggleBtn" class="control-btn-small">
+                            עצור מערכת
+                        </button>
+                        <div id="statusInfo" class="status-info-small active">
+                            המערכת פעילה
+                        </div>
+                    </div>
                 </div>
             </div>
             
-            <div id="ordersContainer">
-                <div class="empty-state">
-                    <h3>המערכת כבויה</h3>
-                    <p>לחץ על "הפעל מערכת" כדי להתחיל לטעון הזמנות</p>
+            <div class="content">
+                <div id="ordersContainer">
+                    <!-- התוכן ייטען אוטומטי אחרי מסך הטעינה -->
                 </div>
             </div>
         </div>
@@ -469,13 +574,34 @@
         // URL של Google Apps Script
         const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxffpyixPtnfRSgrA7eSb_1eTZ_-k4Cm4kz1Me6XeyAsouEVXyE8zmmEQWZH2gDEoZg/exec';
         
+        // משתנים גלובליים
         let orders = [];
         let ordersStatus = {}; // שמירת סטטוס הזמנות
+        let pendingChanges = {}; // הגנה על שינויים מקומיים - חדש!
         let isSystemActive = false;
         let refreshInterval = null;
         let autoStopTimeout = null;
         
-        // פונקציה לטעינת הזמנות מהשרת - מתוקן עם POST
+        // עדכון טקסט טעינה
+        function updateLoadingProgress(text) {
+            const progressElement = document.getElementById('loadingProgress');
+            if (progressElement) {
+                progressElement.textContent = text;
+            }
+        }
+        
+        // הסתרת מסך טעינה והצגת תוכן ראשי
+        function hideLoadingScreen() {
+            const loadingScreen = document.getElementById('loadingScreen');
+            const mainContent = document.getElementById('mainContent');
+            
+            setTimeout(() => {
+                loadingScreen.classList.add('hidden');
+                mainContent.classList.add('visible');
+            }, 500);
+        }
+        
+        // פונקציה לטעינת הזמנות מהשרת - עם הגנת Race Conditions
         async function loadOrders() {
             if (!isSystemActive) return;
             
@@ -510,18 +636,28 @@
                             console.log('=== נטענו נתונים מהשרת ===');
                             console.log('מספר פריטים:', orders.length);
                             
-                            // דיבוג - נראה מה קורה עם הסטטוסים
-                            console.log('סטטוסים לפני עדכון:', JSON.stringify(ordersStatus));
-                            
-                            // עדכון הסטטוסים מהגיליון הפעיל
+                            // עדכון הסטטוסים מהגיליון הפעיל - עם הגנת Race Conditions
+                            const now = Date.now();
                             orders.forEach(item => {
                                 if (item.orderId && item.status) {
-                                    console.log(`מעדכן סטטוס ${item.orderId}: ${ordersStatus[item.orderId]} -> ${item.status}`);
+                                    const pendingChange = pendingChanges[item.orderId];
+                                    
+                                    // אם יש שינוי pending ועדיין לא עברו 5 שניות - לא דורס!
+                                    if (pendingChange && (now - pendingChange.timestamp < 5000)) {
+                                        console.log(`מגן על ${item.orderId}: pending ${pendingChange.status} vs server ${item.status}`);
+                                        return; // דילוג - לא מעדכן
+                                    }
+                                    
+                                    // ניקוי pending שעבר זמנו
+                                    if (pendingChange && (now - pendingChange.timestamp >= 5000)) {
+                                        delete pendingChanges[item.orderId];
+                                        console.log(`ניקוי pending ישן עבור ${item.orderId}`);
+                                    }
+                                    
+                                    // עדכון רגיל
                                     ordersStatus[item.orderId] = item.status;
                                 }
                             });
-                            
-                            console.log('סטטוסים אחרי עדכון:', JSON.stringify(ordersStatus));
                             
                             renderOrders();
                         } else {
@@ -539,24 +675,50 @@
             }
         }
         
-        // פונקציה להפעלת המערכת
+        // הגדרת Page Visibility API - חדש!
+        function setupPageVisibility() {
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden && isSystemActive) {
+                    console.log('🙈 דף מוסתר - עוצר רענון');
+                    if (refreshInterval) {
+                        clearInterval(refreshInterval);
+                        refreshInterval = null;
+                    }
+                } else if (!document.hidden && isSystemActive) {
+                    console.log('👁️ דף חוזר - מתחיל רענון');
+                    startRefreshing();
+                }
+            });
+        }
+        
+        // התחלת רענון
+        function startRefreshing() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+            }
+            // רענון מהיר! כל 5 שניות במקום 20
+            refreshInterval = setInterval(loadOrders, 5000);
+        }
+        
+        // פונקציה להפעלת המערכת - התחלה מיידית
         function startSystem() {
             isSystemActive = true;
             const toggleBtn = document.getElementById('toggleBtn');
             const statusInfo = document.getElementById('statusInfo');
             
             toggleBtn.textContent = 'עצור מערכת';
-            toggleBtn.classList.add('active');
-            statusInfo.textContent = 'המערכת פעילה - מתרענן כל 20 שניות';
+            toggleBtn.classList.remove('stopped');
+            statusInfo.textContent = 'המערכת פעילה';
             statusInfo.classList.add('active');
+            statusInfo.classList.remove('paused');
             
             // טעינה מיידית
             loadOrders();
             
-            // רענון אוטומטי כל 20 שניות
-            refreshInterval = setInterval(loadOrders, 20000);
+            // רענון אוטומטי כל 5 שניות - מהיר!
+            startRefreshing();
             
-            // עצירה אוטומטית אחרי 5 שעות (5 * 60 * 60 * 1000 = 18,000,000 מילישניות)
+            // עצירה אוטומטית אחרי 5 שעות
             autoStopTimeout = setTimeout(() => {
                 stopSystem();
                 alert('המערכת נעצרה אוטומטית אחרי 5 שעות');
@@ -569,10 +731,11 @@
             const toggleBtn = document.getElementById('toggleBtn');
             const statusInfo = document.getElementById('statusInfo');
             
-            toggleBtn.textContent = 'הפעל מערכת';
-            toggleBtn.classList.remove('active');
-            statusInfo.textContent = 'המערכת כבויה - לחץ להפעלה';
+            toggleBtn.textContent = 'טען הזמנות חדשות';
+            toggleBtn.classList.add('stopped');
+            statusInfo.textContent = 'המערכת לא פעילה';
             statusInfo.classList.remove('active');
+            statusInfo.classList.add('paused');
             
             // עצירת הרענון
             if (refreshInterval) {
@@ -586,12 +749,12 @@
                 autoStopTimeout = null;
             }
             
-            // הצגת מסך כבוי
+            // הצגת מסך לא פעיל
             const container = document.getElementById('ordersContainer');
             container.innerHTML = `
                 <div class="empty-state">
-                    <h3>המערכת כבויה</h3>
-                    <p>לחץ על "הפעל מערכת" כדי להתחיל לטעון הזמנות</p>
+                    <h3>המערכת לא פעילה</h3>
+                    <p>לחץ על "טען הזמנות חדשות" כדי להמשיך</p>
                 </div>
             `;
         }
@@ -601,16 +764,14 @@
             if (!dateStr || !timeStr) return false;
             
             const now = new Date();
-            const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000); // שעה אחורה
+            const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
             
-            // ניקוי תאריך ושעה
             const cleanedDate = cleanDate(dateStr);
             const cleanedTime = cleanTime(timeStr);
             
             console.log('בודק רלוונטיות:', cleanedDate, cleanedTime);
             
             try {
-                // פרסור התאריך והשעה של ההזמנה
                 const dateMatch = cleanedDate.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
                 const timeMatch = cleanedTime.match(/(\d{1,2}):(\d{2})/);
                 
@@ -622,24 +783,15 @@
                 const [, day, month, year] = dateMatch;
                 const [, hour, minute] = timeMatch;
                 
-                // יצירת תאריך של ההזמנה
                 const orderDate = new Date(
                     parseInt(year),
-                    parseInt(month) - 1, // חודשים מתחילים מ-0
+                    parseInt(month) - 1,
                     parseInt(day),
                     parseInt(hour),
                     parseInt(minute)
                 );
                 
-                console.log('תאריך הזמנה:', orderDate);
-                console.log('שעה אחורה:', oneHourAgo);
-                console.log('עכשיו:', now);
-                
-                // בדיקה אם ההזמנה היא:
-                // 1. מהיום הנוכחי (כל שעה)
                 const isToday = orderDate.toDateString() === now.toDateString();
-                
-                // 2. או מהשעה הקודמת (גם מאתמול)
                 const isFromLastHour = orderDate >= oneHourAgo && orderDate <= now;
                 
                 const isRelevant = isToday || isFromLastHour;
@@ -659,14 +811,11 @@
             
             const str = dateStr.toString();
             
-            // אם יש GMT, זה Date object שהומר למחרוזת
             if (str.includes('GMT')) {
-                // נחפש דפוס של תאריך בסגנון "Mon Jun 30 2025"
                 const dateMatch = str.match(/(\w{3})\s+(\w{3})\s+(\d{1,2})\s+(\d{4})/);
                 if (dateMatch) {
                     const [, dayName, month, day, year] = dateMatch;
                     
-                    // המרת חודש לספרות
                     const months = {
                         'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04',
                         'May': '05', 'Jun': '06', 'Jul': '07', 'Aug': '08',
@@ -678,7 +827,6 @@
                 }
             }
             
-            // אם זה כבר נראה כמו תאריך רגיל, נחזיר כמו שזה
             return str;
         }
         
@@ -688,13 +836,11 @@
             
             const str = timeStr.toString();
             
-            // נחפש דפוס של שעה:דקה:שניה
             const timeMatch = str.match(/(\d{1,2}):(\d{2}):(\d{2})/);
             if (timeMatch) {
                 return `${timeMatch[1].padStart(2, '0')}:${timeMatch[2]}`;
             }
             
-            // אם זה כבר נראה כמו שעה רגילה, נחזיר כמו שזה
             return str;
         }
         
@@ -714,14 +860,8 @@
                 return;
             }
             
-            // פילטור פריטים רלוונטיים (מהיום או מהשעה הקודמת)
             console.log('=== מתחיל פילטור זמנים ===');
             console.log('סה"כ פריטים לפני פילטור:', orders.length);
-            
-            if (orders.length > 0) {
-                console.log('דוגמה לתאריך ושעה:', orders[0].date, orders[0].time);
-                console.log('בדיקת isRelevantTime לדוגמה:', isRelevantTime(orders[0].date, orders[0].time));
-            }
             
             const relevantItems = orders.filter(item => {
                 const result = isRelevantTime(item.date, item.time);
@@ -762,16 +902,14 @@
             
             container.innerHTML = tableHTML;
             
-            // הוספת event listeners לכפתורי הסטטוס
             setupStatusEventListeners();
         }
         
         // פונקציה ליצירת שורת הזמנה
         function createOrderRow(item) {
-            const itemId = item.orderId; // זה כבר ה-itemId הנכון מהגיליון הפעיל
+            const itemId = item.orderId;
             const currentStatus = ordersStatus[itemId] || item.status || 'pending';
             
-            // יצירת Switch לדסקטופ
             const statusLabels = { pending: 'ממתין', preparing: 'בהכנה', ready: 'מוכן' };
             const statusOptions = ['pending', 'preparing', 'ready'];
             
@@ -786,7 +924,6 @@
                 </div>
             `;
             
-            // יצירת כפתור יחיד לנייד
             const nextStatus = getNextStatus(currentStatus);
             const singleBtnHTML = `
                 <button class="status-single-btn ${currentStatus}" data-order-id="${itemId}" data-next-status="${nextStatus}">
@@ -794,7 +931,6 @@
                 </button>
             `;
             
-            // ניקוי התאריך והשעה
             const cleanedDate = cleanDate(item.date);
             const cleanedTime = cleanTime(item.time);
             
@@ -824,7 +960,6 @@
         
         // פונקציה להוספת Event Listeners
         function setupStatusEventListeners() {
-            // Event listeners לdesktp switch
             document.querySelectorAll('.status-switch').forEach(switchElement => {
                 switchElement.addEventListener('click', (e) => {
                     if (e.target.classList.contains('status-option')) {
@@ -835,7 +970,6 @@
                 });
             });
             
-            // Event listeners לmobile button
             document.querySelectorAll('.status-single-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const itemId = btn.dataset.orderId;
@@ -845,8 +979,7 @@
             });
         }
         
-        // פונקציה לעדכון סטטוס בגיליון
-         // פונקציה לעדכון סטטוס בגיליון - מתוקן עם POST
+        // עדכון סטטוס בגיליון
         async function updateStatusInSheet(itemId, newStatus) {
             try {
                 const params = new URLSearchParams({
@@ -891,9 +1024,8 @@
             }
         }
         
-        // פונקציה לעדכון תצוגה מקומית
+        // עדכון תצוגה מקומית
         function updateLocalDisplay(itemId, newStatus) {
-            // עדכון Switch בdesktp
             const switchElement = document.querySelector(`.status-switch[data-order-id="${itemId}"]`);
             if (switchElement) {
                 const options = switchElement.querySelectorAll('.status-option');
@@ -906,37 +1038,38 @@
                 });
             }
             
-            // עדכון כפתור בmobile
             const singleBtn = document.querySelector(`.status-single-btn[data-order-id="${itemId}"]`);
             if (singleBtn) {
                 const statusLabels = { pending: 'ממתין', preparing: 'בהכנה', ready: 'מוכן' };
                 const nextStatus = getNextStatus(newStatus);
                 
-                // הסרת כל הclass-ים הישנים
                 singleBtn.classList.remove('pending', 'preparing', 'ready');
-                // הוספת class חדש
                 singleBtn.classList.add(newStatus);
-                // עדכון הטקסט
                 singleBtn.textContent = statusLabels[newStatus];
-                // עדכון ה-data attribute
                 singleBtn.dataset.nextStatus = nextStatus;
             }
         }
         
-        // פונקציה לשינוי סטטוס הזמנה - מתוקנת ומשופרת
+        // שינוי סטטוס הזמנה - עם הגנת Race Conditions
         window.changeOrderStatus = async function(itemId, targetStatus) {
             try {
                 const currentStatus = ordersStatus[itemId] || 'pending';
                 
-                // אם הסטטוס כבר נכון, לא עושים כלום
                 if (currentStatus === targetStatus) {
                     return;
                 }
                 
-                console.log('=== מתחיל שינוי סטטוס ===');
+                console.log('=== מתחיל שינוי סטטוס עם הגנת Race ===');
                 console.log('מזהה פריט:', itemId);
                 console.log('סטטוס נוכחי:', currentStatus);
                 console.log('סטטוס יעד:', targetStatus);
+                
+                // הגנת Race Conditions - שמירת השינוי הפנימי
+                pendingChanges[itemId] = {
+                    status: targetStatus,
+                    timestamp: Date.now()
+                };
+                console.log('נשמר בpending changes:', pendingChanges[itemId]);
                 
                 // עדכון מיידי בזיכרון ובתצוגה
                 ordersStatus[itemId] = targetStatus;
@@ -948,16 +1081,22 @@
                 const success = await updateStatusInSheet(itemId, targetStatus);
                 console.log('תוצאת עדכון בשרת:', success);
                 
-                if (!success) {
-                    console.error('שגיאה בעדכון סטטוס בגיליון - מחזיר לסטטוס קודם');
-                    // אם נכשל, נחזיר לסטטוס הקודם
+                if (success) {
+                    // הצליח - מסיר מpending
+                    delete pendingChanges[itemId];
+                    console.log('הושלם בהצלחה, הוסר מpending');
+                } else {
+                    // נכשל - מחזיר לסטטוס הקודם
+                    console.error('כישלון בעדכון - מחזיר לסטטוס קודם');
+                    delete pendingChanges[itemId];
                     ordersStatus[itemId] = currentStatus;
                     updateLocalDisplay(itemId, currentStatus);
                 }
                 
             } catch (error) {
                 console.error('שגיאה בפונקציית changeOrderStatus:', error);
-                // במקרה של שגיאה, נחזיר לסטטוס הקודם
+                // במקרה של שגיאה, מחזיר לסטטוס הקודם
+                delete pendingChanges[itemId];
                 ordersStatus[itemId] = currentStatus;
                 updateLocalDisplay(itemId, currentStatus);
             }
@@ -975,11 +1114,50 @@
             }
         }
         
-        // אתחול הדף
-        function init() {
+        // אתחול ראשוני עם טעינה מיידית
+        async function initializeSystem() {
+            updateLoadingProgress('מכין את המערכת...');
+            
+            // הגדרת Page Visibility
+            setupPageVisibility();
+            
+            // טעינת נתונים שמורים
             loadStoredStatuses();
             
-            // הוספת event listener לכפתור ההפעלה
+            updateLoadingProgress('מתחבר לשרת...');
+            
+            // התחלה מיידית אוטומטית!
+            isSystemActive = true;
+            const toggleBtn = document.getElementById('toggleBtn');
+            const statusInfo = document.getElementById('statusInfo');
+            
+            toggleBtn.textContent = 'עצור מערכת';
+            toggleBtn.classList.remove('stopped');
+            statusInfo.textContent = 'המערכת פעילה';
+            statusInfo.classList.add('active');
+            statusInfo.classList.remove('paused');
+            
+            // טעינה ראשונה
+            await loadOrders();
+            
+            // התחלת רענון
+            startRefreshing();
+            
+            // עצירה אוטומטית אחרי 5 שעות
+            autoStopTimeout = setTimeout(() => {
+                stopSystem();
+                alert('המערכת נעצרה אוטומטית אחרי 5 שעות');
+            }, 5 * 60 * 60 * 1000);
+            
+            updateLoadingProgress('המערכת מוכנה!');
+            
+            // הסתרת מסך הטעינה
+            setTimeout(hideLoadingScreen, 800);
+        }
+        
+        // אתחול הדף
+        function init() {
+            // הוספת event listener לכפתור ההפעלה/עצירה
             document.getElementById('toggleBtn').addEventListener('click', () => {
                 if (isSystemActive) {
                     stopSystem();
@@ -987,6 +1165,9 @@
                     startSystem();
                 }
             });
+            
+            // התחלה מיידית עם מסך טעינה
+            initializeSystem();
         }
         
         // התחלה כשהדף נטען
