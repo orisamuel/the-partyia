@@ -427,8 +427,8 @@
                     <div class="form-group">
                         <label for="residenceFilter">סוג תושב:</label>
                         <select id="residenceFilter">
-                            <option value="">הכל</option>
-                            <option value="">תושבי נופי פרת (ברשימה)</option>
+                            <option value="all">הכל</option>
+                            <option value="nofi_list">תושבי נופי פרת (ברשימה)</option>
                             <option value="נופי פרת לא ברשימה">תושבי נופי פרת (לא ברשימה)</option>
                             <option value="כפר אדומים">תושבי כפר אדומים</option>
                             <option value="אלון">תושבי אלון</option>
@@ -839,7 +839,7 @@
             }
         }
         
-        // הצגת התוצאות
+        // הצגת התוצאות - מתוקן
         function displayResults(data) {
             updateStatistics(data);
             updateTable(data);
@@ -847,11 +847,11 @@
             document.getElementById('resultsSection').style.display = 'block';
         }
         
-        // עדכון סטטיסטיקות
-        function updateStatistics(data) {
-            const uniqueResidents = new Set(data.map(item => item.name)).size;
-            const totalOrders = data.reduce((sum, item) => sum + item.orders.length, 0);
-            const totalRevenue = data.reduce((sum, item) => sum + item.totalAmount, 0);
+        // עדכון סטטיסטיקות - מתוקן לפי הפילטר החדש
+        function updateStatistics(filteredData) {
+            const uniqueResidents = new Set(filteredData.map(item => item.name)).size;
+            const totalOrders = filteredData.reduce((sum, item) => sum + item.orders.length, 0);
+            const totalRevenue = filteredData.reduce((sum, item) => sum + item.totalAmount, 0);
             const averageSpending = uniqueResidents > 0 ? Math.round(totalRevenue / uniqueResidents) : 0;
             
             document.getElementById('totalResidents').textContent = uniqueResidents;
@@ -860,14 +860,15 @@
             document.getElementById('averageSpending').textContent = `₪${averageSpending}`;
         }
         
-        // עדכון טבלה
+        // עדכון טבלה - מתוקן
         function updateTable(data) {
             const tbody = document.getElementById('expensesTableBody');
             const residenceFilter = document.getElementById('residenceFilter').value;
             
-            // סינון לפי סוג תושב
+            // סינון לפי סוג תושב - לוגיקה מתוקנת
             const filteredData = data.filter(item => {
-                if (!residenceFilter) return true;
+                if (residenceFilter === 'all') return true;
+                if (residenceFilter === 'nofi_list') return !item.residenceType; // ריק = נופי פרת ברשימה
                 return item.residenceType === residenceFilter;
             });
             
@@ -941,19 +942,25 @@
             }
         }
         
-        // סינון טבלה לפי סוג תושב
+        // סינון טבלה לפי סוג תושב - מתוקן
         function filterTable() {
             if (currentData.length > 0) {
-                updateTable(currentData);
-                updateStatistics(currentData.filter(item => {
-                    const residenceFilter = document.getElementById('residenceFilter').value;
-                    if (!residenceFilter) return true;
+                const residenceFilter = document.getElementById('residenceFilter').value;
+                
+                // סינון הנתונים
+                const filteredData = currentData.filter(item => {
+                    if (residenceFilter === 'all') return true;
+                    if (residenceFilter === 'nofi_list') return !item.residenceType; // ריק = נופי פרת ברשימה
                     return item.residenceType === residenceFilter;
-                }));
+                });
+                
+                // עדכון טבלה וסטטיסטיקות עם הנתונים המסוננים
+                updateTable(currentData); // הטבלה מסננת בעצמה
+                updateStatistics(filteredData); // הסטטיסטיקות לפי המסונן
             }
         }
         
-        // יצוא לאקסל - מתוקן עם סדר נכון ותיקון סוג התושב
+        // יצוא לאקסל - מתוקן עם סדר נכון, תיקון סוג התושב ו-RTL
         function exportToExcel() {
             if (currentData.length === 0) {
                 alert('אין נתונים ליצוא');
@@ -967,15 +974,13 @@
             // הכנת הנתונים ליצוא עם סדר חדש ותיקון סוג התושב
             const exportData = currentData
                 .filter(item => {
-                    if (!residenceFilter) return true;
+                    if (residenceFilter === 'all') return true;
+                    if (residenceFilter === 'nofi_list') return !item.residenceType; // ריק = נופי פרת ברשימה
                     return item.residenceType === residenceFilter;
                 })
                 .map(item => {
                     // תיקון סוג התושב - אם ריק זה אומר תושב נופי פרת מהרשימה
-                    let residenceTypeDisplay = item.residenceType || '';
-                    if (!residenceTypeDisplay) {
-                        residenceTypeDisplay = 'תושב נופי פרת (ברשימה)';
-                    }
+                    let residenceTypeDisplay = item.residenceType || 'תושב נופי פרת (ברשימה)';
                     
                     return {
                         'שם התושב': item.name,
@@ -986,8 +991,12 @@
                     };
                 });
             
-            // יצירת קובץ Excel עם פורמט משופר
+            // יצירת קובץ Excel עם פורמט משופר ו-RTL
             const ws = XLSX.utils.json_to_sheet(exportData);
+            
+            // הגדרת כיוון RTL לגליון
+            if (!ws['!worksheetOptions']) ws['!worksheetOptions'] = {};
+            ws['!worksheetOptions']['rightToLeft'] = true;
             
             // הגדרת רוחבי עמודות לפורמט יפה יותר
             ws['!cols'] = [
