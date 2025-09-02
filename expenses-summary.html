@@ -953,7 +953,7 @@
             }
         }
         
-        // יצוא לאקסל
+        // יצוא לאקסל - מתוקן עם סדר נכון ותיקון סוג התושב
         function exportToExcel() {
             if (currentData.length === 0) {
                 alert('אין נתונים ליצוא');
@@ -964,28 +964,46 @@
             const toDate = document.getElementById('toDate').value;
             const residenceFilter = document.getElementById('residenceFilter').value;
             
-            // הכנת הנתונים ליצוא
+            // הכנת הנתונים ליצוא עם סדר חדש ותיקון סוג התושב
             const exportData = currentData
                 .filter(item => {
                     if (!residenceFilter) return true;
                     return item.residenceType === residenceFilter;
                 })
-                .map(item => ({
-                    'שם התושב': item.name,
-                    'תאריך אירוע': item.eventDateFormatted,
-                    'סוג תושב': item.residenceType || 'תושב נופי פרת (ברשימה)',
-                    'פירוט הזמנות': createOrdersSummary(item.orders),
-                    'מספר הזמנות': item.orders.length,
-                    'סכום': item.totalAmount
-                }));
+                .map(item => {
+                    // תיקון סוג התושב - אם ריק זה אומר תושב נופי פרת מהרשימה
+                    let residenceTypeDisplay = item.residenceType || '';
+                    if (!residenceTypeDisplay) {
+                        residenceTypeDisplay = 'תושב נופי פרת (ברשימה)';
+                    }
+                    
+                    return {
+                        'שם התושב': item.name,
+                        'תאריך': item.eventDateFormatted,
+                        'סכום לחיוב': `₪${item.totalAmount}`,
+                        'פירוט הזמנות': createOrdersSummary(item.orders),
+                        'סוג תושב': residenceTypeDisplay
+                    };
+                });
             
-            // יצירת קובץ Excel
+            // יצירת קובץ Excel עם פורמט משופר
             const ws = XLSX.utils.json_to_sheet(exportData);
+            
+            // הגדרת רוחבי עמודות לפורמט יפה יותר
+            ws['!cols'] = [
+                { width: 25 }, // שם התושב
+                { width: 15 }, // תאריך
+                { width: 12 }, // סכום לחיוב
+                { width: 40 }, // פירוט הזמנות
+                { width: 30 }  // סוג תושב
+            ];
+            
+            // יצירת workbook ושמירת הגיליון
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, 'סיכום הוצאות');
             
-            // הורדת הקובץ
-            const fileName = `סיכום_הוצאות_${fromDate}_עד_${toDate}.xlsx`;
+            // הורדת הקובץ עם שם משופר
+            const fileName = `פרתיה_סיכום_הוצאות_${fromDate}_עד_${toDate}.xlsx`;
             XLSX.writeFile(wb, fileName);
         }
         
