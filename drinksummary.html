@@ -798,24 +798,38 @@
             document.getElementById('topProduct').textContent = topProduct;
         }
         
-        // עדכון גרפים
+        // עדכון גרפים - מתוקן עם דיבוג
         function updateCharts() {
+            console.log('📈 מעדכן גרפים...');
+            
+            if (currentData.length === 0) {
+                console.log('❌ אין נתונים לגרפים');
+                return;
+            }
+            
             // גרף התפלגות מכירות
             updateSalesChart();
             
             // גרף מוצרים פופולאריים
             updatePopularChart();
+            
+            console.log('✅ גרפים עודכנו');
         }
         
-        // גרף התפלגות מכירות (Doughnut)
+        // גרף התפלגות מכירות (Doughnut) - מתוקן עם דיבוג
         function updateSalesChart() {
+            console.log('🍩 מעדכן גרף עוגה...');
+            
             const ctx = document.getElementById('salesChart').getContext('2d');
             
             if (salesChart) {
                 salesChart.destroy();
+                console.log('🗑️ הסיר גרף קודם');
             }
             
             const top10 = currentData.slice(0, 10);
+            console.log('🔝 TOP 10 מוצרים לגרף עוגה:', top10.map(item => `${item.name}: ${item.quantity}`));
+            
             const colors = [
                 '#E67E22', '#3498DB', '#2ECC71', '#E74C3C', '#9B59B6',
                 '#F1C40F', '#1ABC9C', '#34495E', '#E67E22', '#95A5A6'
@@ -848,17 +862,23 @@
                     }
                 }
             });
+            
+            console.log('✅ גרף עוגה נוצר');
         }
         
-        // גרף מוצרים פופולאריים (Bar)
+        // גרף מוצרים פופולאריים (Bar) - מתוקן עם דיבוג
         function updatePopularChart() {
+            console.log('📊 מעדכן גרף עמודות...');
+            
             const ctx = document.getElementById('popularChart').getContext('2d');
             
             if (popularChart) {
                 popularChart.destroy();
+                console.log('🗑️ הסיר גרף קודם');
             }
             
             const top8 = currentData.slice(0, 8);
+            console.log('🔝 TOP 8 מוצרים לגרף עמודות:', top8.map(item => `${item.name}: ${item.quantity}`));
             
             popularChart = new Chart(ctx, {
                 type: 'bar',
@@ -890,6 +910,8 @@
                     }
                 }
             });
+            
+            console.log('✅ גרף עמודות נוצר');
         }
         
         // עדכון טבלה
