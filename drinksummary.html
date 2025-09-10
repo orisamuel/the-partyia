@@ -673,6 +673,7 @@
             });
             
             if (isSingleMode) {
+                console.log('🔍 מחפש אירוע בתאריך HTML:', eventDate);
                 params.append('eventDate', eventDate);
             }
             
@@ -789,17 +790,23 @@
             return 0;
         }
         
-        // ספירת אירועים ייחודיים
+        // ספירת אירועים ייחודיים - מתוקן
         function countUniqueEvents(orders) {
             const uniqueDates = new Set();
             
+            console.log('📅 בודק תאריכים לספירת אירועים:');
             orders.forEach(order => {
                 if (order.date) {
                     uniqueDates.add(order.date);
+                    console.log('   תאריך נמצא:', order.date);
                 }
             });
             
-            return uniqueDates.size;
+            const uniqueDatesArray = Array.from(uniqueDates);
+            console.log('📊 תאריכים ייחודיים:', uniqueDatesArray);
+            console.log('🎯 מספר אירועים:', uniqueDatesArray.length);
+            
+            return uniqueDatesArray.length;
         }
         
         // הצגת התוצאות
