@@ -992,7 +992,7 @@
             return sorted;
         }
         
-        // קביעת קבוצת מוצר
+        // קביעת קבוצת מוצר - ללא מחיר ברירת מחדל
         function getProductGroup(productName) {
             const nameLower = productName.toLowerCase();
             
@@ -1007,6 +1007,11 @@
             
             // מוצר יחיד
             const productInfo = productsData[productName];
+            
+            if (!productInfo) {
+                console.log('❌ מוצר לא נמצא במאגר:', productName, '- הכנסות לא יחושבו');
+            }
+            
             return {
                 name: productName,
                 emoji: productInfo?.emoji || '🍽️',
@@ -1014,7 +1019,7 @@
             };
         }
         
-        // קבלת מידע קבוצה לפי שם
+        // קבלת מידע קבוצה לפי שם - ללא מחיר ברירת מחדל
         function getProductGroupByName(groupName) {
             // חיפוש בקבוצות מוגדרות
             for (const group of Object.values(PRODUCT_GROUPS)) {
