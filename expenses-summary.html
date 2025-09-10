@@ -80,11 +80,45 @@
         }
         
         .controls {
-            background: #f8f9fa;
-            padding: 25px;
-            border-radius: 15px;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 30px;
+            border-radius: 20px;
             margin-bottom: 30px;
-            border: 2px solid #e9ecef;
+            border: 2px solid #dee2e6;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        
+        .mode-selector {
+            display: flex;
+            gap: 0;
+            margin-bottom: 25px;
+            background: white;
+            border-radius: 15px;
+            padding: 6px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+            justify-content: center;
+            max-width: 400px;
+            margin: 0 auto 25px auto;
+        }
+        
+        .mode-btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: #6c757d;
+        }
+        
+        .mode-btn.active {
+            background: linear-gradient(135deg, #E67E22, #D35400);
+            color: white;
+            box-shadow: 0 4px 12px rgba(230, 126, 34, 0.3);
+            transform: translateY(-1px);
         }
         
         .controls-row {
@@ -96,8 +130,12 @@
         
         .date-range-group {
             display: flex;
-            gap: 10px;
+            gap: 15px;
             align-items: end;
+        }
+        
+        .hidden {
+            display: none;
         }
         
         .form-group {
@@ -412,15 +450,28 @@
         <div class="content">
             <!-- בקרות -->
             <div class="controls">
+                <!-- בוחר מצב -->
+                <div class="mode-selector">
+                    <button class="mode-btn active" id="singleEventBtn">🎯 אירוע יחיד</button>
+                    <button class="mode-btn" id="dateRangeBtn">📅 טווח תאריכים</button>
+                </div>
+                
                 <div class="controls-row">
-                    <div class="date-range-group">
+                    <!-- אירוע יחיד -->
+                    <div class="form-group" id="singleDateGroup">
+                        <label for="eventDate">תאריך האירוע:</label>
+                        <input type="date" id="eventDate" required>
+                    </div>
+                    
+                    <!-- טווח תאריכים -->
+                    <div class="date-range-group hidden" id="dateRangeGroup">
                         <div class="form-group">
                             <label for="fromDate">מתאריך:</label>
-                            <input type="date" id="fromDate" required>
+                            <input type="date" id="fromDate">
                         </div>
                         <div class="form-group">
                             <label for="toDate">עד תאריך:</label>
-                            <input type="date" id="toDate" required>
+                            <input type="date" id="toDate">
                         </div>
                     </div>
                     
@@ -550,63 +601,6 @@
             return str;
         }
         
-        // פונקציה לבדיקה אם הזמנה רלוונטית לטווח תאריכים
-        function isRelevantForDateRange(dateStr, timeStr, fromDate, toDate) {
-            if (!dateStr || !timeStr || !fromDate || !toDate) return false;
-            
-            // ניקוי תאריך ושעה של ההזמנה
-            const cleanedDate = cleanDate(dateStr);
-            const cleanedTime = cleanTime(timeStr);
-            
-            console.log('בודק רלוונטיות לטווח:', cleanedDate, cleanedTime, 'עבור טווח:', fromDate, 'עד', toDate);
-            
-            try {
-                // פרסור התאריך והשעה של ההזמנה
-                const dateMatch = cleanedDate.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-                const timeMatch = cleanedTime.match(/(\d{1,2}):(\d{2})/);
-                
-                if (!dateMatch || !timeMatch) {
-                    console.log('לא הצלחתי לפרסר:', cleanedDate, cleanedTime);
-                    return false;
-                }
-                
-                const [, day, month, year] = dateMatch;
-                const [, hour, minute] = timeMatch;
-                
-                // יצירת תאריך של ההזמנה
-                const orderDate = new Date(
-                    parseInt(year),
-                    parseInt(month) - 1, // חודשים מתחילים מ-0
-                    parseInt(day),
-                    parseInt(hour),
-                    parseInt(minute)
-                );
-                
-                // יצירת תאריכי הטווח
-                const fromDateObj = new Date(fromDate);
-                const toDateObj = new Date(toDate);
-                // הוספת יום אחד לתאריך הסיום כדי לכלול גם את הלילה שאחרי
-                const toDateNextDay = new Date(toDateObj);
-                toDateNextDay.setDate(toDateNextDay.getDate() + 1);
-                toDateNextDay.setHours(6, 0, 0, 0); // עד 6:00 בבוקר של היום שאחרי
-                
-                console.log('תאריך הזמנה:', orderDate);
-                console.log('מתאריך:', fromDateObj);
-                console.log('עד תאריך (כולל לילה):', toDateNextDay);
-                
-                // בדיקה אם ההזמנה בטווח
-                const isInRange = orderDate >= fromDateObj && orderDate <= toDateNextDay;
-                
-                console.log('האם בטווח:', isInRange);
-                
-                return isInRange;
-                
-            } catch (error) {
-                console.error('שגיאה בבדיקת זמן לטווח:', error);
-                return false;
-            }
-        }
-        
         // פונקציה להמרת תאריך לפורמט יפה
         function formatDateNice(dateStr) {
             try {
@@ -667,10 +661,14 @@
             }
         }
         
-        // שליפת הזמנות לפי טווח תאריכים - עם סינון בדיקות וסינון בצד הלקוח
-        async function fetchOrdersByDateRange(fromDate, toDate) {
-            console.log('=== מתחיל fetchOrdersByDateRange עם סינון בדיקות וסינון בצד הלקוח ===');
-            console.log('טווח תאריכים:', fromDate, 'עד', toDate);
+        // שליפת נתוני הזמנות - תמיד מהגיליון הראשי עם סינון בדיקות
+        async function fetchOrdersData(isSingleMode, eventDate, fromDate, toDate) {
+            console.log('=== מתחיל fetchOrdersData עם סינון בדיקות וסינון בצד הלקוח ===');
+            if (isSingleMode) {
+                console.log('מצב אירוע יחיד:', eventDate);
+            } else {
+                console.log('טווח תאריכים:', fromDate, 'עד', toDate);
+            }
             
             const params = new URLSearchParams({
                 action: 'getRecentOrdersFromMain',
@@ -725,28 +723,160 @@
                 });
                 console.log('מספר הזמנות אחרי סינון בדיקות:', ordersWithoutTests.length);
                 
-                // סינון 2: הזמנות רלוונטיות לטווח
-                console.log('=== מתחיל סינון הזמנות לטווח ===');
-                const relevantOrders = ordersWithoutTests.filter(order => {
-                    const isRelevant = isRelevantForDateRange(order.date, order.time, fromDate, toDate);
-                    if (!isRelevant) {
-                        console.log('מסנן הזמנה:', order.customerName, order.date, order.time);
-                    }
-                    return isRelevant;
-                });
+                // סינון 2: הזמנות רלוונטיות לתאריך/טווח
+                console.log('=== מתחיל סינון הזמנות לתאריך/טווח ===');
+                let relevantOrders;
+                if (isSingleMode) {
+                    relevantOrders = filterByEventDate(ordersWithoutTests, eventDate);
+                } else {
+                    relevantOrders = filterByDateRange(ordersWithoutTests, fromDate, toDate);
+                }
                 
-                console.log('מספר הזמנות אחרי סינון טווח:', relevantOrders.length);
+                console.log('מספר הזמנות אחרי סינון תאריך/טווח:', relevantOrders.length);
                 console.log('דוגמה להזמנה רלוונטית:', relevantOrders[0]);
                 
                 return relevantOrders;
                 
             } catch (error) {
-                console.error('=== שגיאה ב-fetchOrdersByDateRange ===');
+                console.error('=== שגיאה ב-fetchOrdersData ===');
                 console.error('סוג השגיאה:', error.name);
                 console.error('הודעת השגיאה:', error.message);
                 console.error('מקום השגיאה:', error.stack);
                 throw error;
             }
+        }
+        
+        // פילטור לפי אירוע יחיד (כולל הזמנות לילה)
+        function filterByEventDate(orders, targetDate) {
+            const [targetYear, targetMonth, targetDay] = targetDate.split('-').map(Number);
+            const targetDateObj = new Date(targetYear, targetMonth - 1, targetDay);
+            
+            // חישוב התאריך שאחרי (לבדיקת הזמנות לילה)
+            const nextDay = new Date(targetDateObj);
+            nextDay.setDate(nextDay.getDate() + 1);
+            
+            const targetDateStr = `${targetDay.toString().padStart(2, '0')}/${targetMonth.toString().padStart(2, '0')}/${targetYear}`;
+            const nextDayStr = `${nextDay.getDate().toString().padStart(2, '0')}/${(nextDay.getMonth() + 1).toString().padStart(2, '0')}/${nextDay.getFullYear()}`;
+            
+            console.log('מחפש הזמנות עבור אירוע:', targetDateStr);
+            console.log('כולל הזמנות לילה מ:', nextDayStr, '(עד 06:00)');
+            
+            return orders.filter(order => {
+                const orderDateStr = order.date;
+                const orderTime = order.time;
+                
+                if (!orderDateStr || !orderTime) return false;
+                
+                let orderDate;
+                let orderDateFormatted;
+                
+                // זיהוי פורמט התאריך
+                if (orderDateStr.includes('GMT') || orderDateStr.includes('00:00:00')) {
+                    // פורמט Date object
+                    orderDate = new Date(orderDateStr);
+                    const day = orderDate.getDate().toString().padStart(2, '0');
+                    const month = (orderDate.getMonth() + 1).toString().padStart(2, '0');
+                    const year = orderDate.getFullYear();
+                    orderDateFormatted = `${day}/${month}/${year}`;
+                } else if (orderDateStr.includes('/')) {
+                    // פורמט DD/MM/YYYY
+                    orderDateFormatted = orderDateStr;
+                    const [day, month, year] = orderDateStr.split('/').map(Number);
+                    orderDate = new Date(year, month - 1, day);
+                } else {
+                    return false;
+                }
+                
+                // הזמנות מהתאריך הראשי
+                if (orderDateFormatted === targetDateStr) {
+                    console.log('הזמנה מהתאריך הרגיל:', order.customerName, orderTime);
+                    return true;
+                }
+                
+                // הזמנות לילה מהיום שאחרי
+                if (orderDateFormatted === nextDayStr) {
+                    const timeMatch = orderTime.toString().match(/(\d{1,2}):(\d{2})/);
+                    if (timeMatch) {
+                        const hour = parseInt(timeMatch[1]);
+                        if (hour >= 0 && hour < 6) {
+                            console.log('הזמנת לילה מהיום שאחרי:', order.customerName, orderTime);
+                            return true;
+                        }
+                    }
+                }
+                
+                return false;
+            });
+        }
+        
+        // פילטור לפי טווח תאריכים - עם טיפול בפורמטים שונים
+        function filterByDateRange(orders, fromDate, toDate) {
+            const fromDateObj = new Date(fromDate);
+            const toDateObj = new Date(toDate);
+            
+            console.log('🔍 מפלטר לטווח:');
+            console.log('   מתאריך:', fromDateObj.toDateString());
+            console.log('   עד תאריך:', toDateObj.toDateString());
+            
+            let matchCount = 0;
+            
+            const filtered = orders.filter(order => {
+                try {
+                    const orderDateStr = order.date || '';
+                    
+                    if (!orderDateStr) {
+                        console.log('⚠️  הזמנה ללא תאריך:', order.customerName);
+                        return false;
+                    }
+                    
+                    let orderDate;
+                    
+                    // זיהוי פורמט התאריך
+                    if (orderDateStr.includes('GMT') || orderDateStr.includes('00:00:00')) {
+                        // פורמט Date object: "Thu Jul 03 2025 00:00:00 GMT+0300"
+                        orderDate = new Date(orderDateStr);
+                        console.log('📅 Date object:', orderDateStr, '→', orderDate.toDateString());
+                    } else if (orderDateStr.includes('/')) {
+                        // פורמט DD/MM/YYYY: "03/07/2025"
+                        const dateParts = orderDateStr.split('/');
+                        if (dateParts.length !== 3) {
+                            console.log('⚠️  פורמט DD/MM/YYYY לא תקין:', orderDateStr);
+                            return false;
+                        }
+                        const [day, month, year] = dateParts.map(Number);
+                        orderDate = new Date(year, month - 1, day);
+                        console.log('📅 DD/MM/YYYY:', orderDateStr, '→', orderDate.toDateString());
+                    } else {
+                        console.log('⚠️  פורמט תאריך לא מוכר:', orderDateStr);
+                        return false;
+                    }
+                    
+                    // בדיקת תקינות התאריך
+                    if (isNaN(orderDate.getTime())) {
+                        console.log('⚠️  תאריך לא תקין:', orderDateStr);
+                        return false;
+                    }
+                    
+                    const isInRange = orderDate >= fromDateObj && orderDate <= toDateObj;
+                    
+                    // דיבוג מפורט
+                    if (matchCount < 10) { // מציג רק 10 הראשונים כדי לא להציף
+                        console.log(`   ${isInRange ? '✅' : '❌'} ${order.customerName}: ${orderDate.toDateString()}`);
+                    }
+                    
+                    if (isInRange) {
+                        matchCount++;
+                    }
+                    
+                    return isInRange;
+                } catch (e) {
+                    console.log('❌ שגיאה בעיבוד תאריך:', e.message, 'עבור הזמנה:', order.customerName);
+                    return false;
+                }
+            });
+            
+            console.log('📊 נמצאו', matchCount, 'הזמנות בטווח');
+            return filtered;
         }
         
         // עיבוד נתוני ההזמנות לפי תאריך - כל תושב+תאריך = שורה נפרדת
@@ -798,27 +928,60 @@
             // הגדרת תאריך היום כברירת מחדל
             const today = new Date();
             const todayStr = today.toISOString().split('T')[0];
+            document.getElementById('eventDate').value = todayStr;
             document.getElementById('fromDate').value = todayStr;
             document.getElementById('toDate').value = todayStr;
             
             // Event listeners
+            document.getElementById('singleEventBtn').addEventListener('click', () => setMode('single'));
+            document.getElementById('dateRangeBtn').addEventListener('click', () => setMode('range'));
             document.getElementById('generateBtn').addEventListener('click', generateReport);
             document.getElementById('toggleDetailBtn').addEventListener('click', toggleDetails);
             document.getElementById('exportBtn').addEventListener('click', exportToExcel);
             document.getElementById('residenceFilter').addEventListener('change', filterTable);
         });
         
+        // החלפת מצב (אירוע יחיד / טווח)
+        function setMode(mode) {
+            console.log('📊 מחליף למצב:', mode);
+            
+            const singleBtn = document.getElementById('singleEventBtn');
+            const rangeBtn = document.getElementById('dateRangeBtn');
+            const singleGroup = document.getElementById('singleDateGroup');
+            const rangeGroup = document.getElementById('dateRangeGroup');
+            
+            if (mode === 'single') {
+                singleBtn.classList.add('active');
+                rangeBtn.classList.remove('active');
+                singleGroup.classList.remove('hidden');
+                rangeGroup.classList.add('hidden');
+            } else {
+                singleBtn.classList.remove('active');
+                rangeBtn.classList.add('active');
+                singleGroup.classList.add('hidden');
+                rangeGroup.classList.remove('hidden');
+            }
+        }
+        
         // יצירת דוח
         async function generateReport() {
+            const isSingleMode = document.getElementById('singleEventBtn').classList.contains('active');
+            const eventDate = document.getElementById('eventDate').value;
             const fromDate = document.getElementById('fromDate').value;
             const toDate = document.getElementById('toDate').value;
             
-            if (!fromDate || !toDate) {
+            // בדיקות תקינות
+            if (isSingleMode && !eventDate) {
+                alert('אנא בחר תאריך אירוע');
+                return;
+            }
+            
+            if (!isSingleMode && (!fromDate || !toDate)) {
                 alert('אנא בחר טווח תאריכים');
                 return;
             }
             
-            if (new Date(fromDate) > new Date(toDate)) {
+            if (!isSingleMode && new Date(fromDate) > new Date(toDate)) {
                 alert('תאריך ההתחלה צריך להיות לפני תאריך הסיום');
                 return;
             }
@@ -834,7 +997,7 @@
             
             try {
                 // שליפת נתונים מהשרת
-                const orders = await fetchOrdersByDateRange(fromDate, toDate);
+                const orders = await fetchOrdersData(isSingleMode, eventDate, fromDate, toDate);
                 
                 // עיבוד הנתונים
                 currentData = processOrdersDataByDate(orders);
