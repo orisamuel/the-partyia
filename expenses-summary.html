@@ -972,13 +972,15 @@
             }
         }
         
-        // יצוא לאקסל - מתוקן עם סדר נכון, תיקון סוג התושב ו-RTL
+        // יצוא לאקסל - מתוקן עם סדר נכון, תיקון סוג התושב ו-RTL ותמיכה בשני מצבים
         function exportToExcel() {
             if (currentData.length === 0) {
                 alert('אין נתונים ליצוא');
                 return;
             }
             
+            const isSingleMode = document.getElementById('singleEventBtn').classList.contains('active');
+            const eventDate = document.getElementById('eventDate').value;
             const fromDate = document.getElementById('fromDate').value;
             const toDate = document.getElementById('toDate').value;
             const residenceFilter = document.getElementById('residenceFilter').value;
@@ -1023,8 +1025,14 @@
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, 'סיכום הוצאות');
             
-            // הורדת הקובץ עם שם משופר
-            const fileName = `פרתיה_סיכום_הוצאות_${fromDate}_עד_${toDate}.xlsx`;
+            // יצירת שם קובץ לפי המצב
+            let fileName;
+            if (isSingleMode) {
+                fileName = `פרתיה_סיכום_הוצאות_אירוע_${eventDate}.xlsx`;
+            } else {
+                fileName = `פרתיה_סיכום_הוצאות_${fromDate}_עד_${toDate}.xlsx`;
+            }
+            
             XLSX.writeFile(wb, fileName);
         }
         
