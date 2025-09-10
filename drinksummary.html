@@ -788,7 +788,7 @@
             return orders;
         }
         
-        // פילטור לפי אירוע יחיד (כולל הזמנות לילה)
+        // פילטור לפי אירוע יחיד (כולל הזמנות לילה) - עם טיפול בפורמטים שונים
         function filterByEventDate(orders, targetDate) {
             const [targetYear, targetMonth, targetDay] = targetDate.split('-').map(Number);
             const targetDateObj = new Date(targetYear, targetMonth - 1, targetDay);
@@ -800,28 +800,48 @@
             const targetDateStr = `${targetDay.toString().padStart(2, '0')}/${targetMonth.toString().padStart(2, '0')}/${targetYear}`;
             const nextDayStr = `${nextDay.getDate().toString().padStart(2, '0')}/${(nextDay.getMonth() + 1).toString().padStart(2, '0')}/${nextDay.getFullYear()}`;
             
-            console.log('🔍 מחפש הזמנות עבור אירוע:', targetDateStr);
-            console.log('🌙 כולל הזמנות לילה מ:', nextDayStr, '(עד 06:00)');
+            console.log('מחפש הזמנות עבור אירוע:', targetDateStr);
+            console.log('כולל הזמנות לילה מ:', nextDayStr, '(עד 06:00)');
             
             return orders.filter(order => {
-                const orderDate = order.date;
+                const orderDateStr = order.date;
                 const orderTime = order.time;
                 
-                if (!orderDate || !orderTime) return false;
+                if (!orderDateStr || !orderTime) return false;
+                
+                let orderDate;
+                let orderDateFormatted;
+                
+                // זיהוי פורמט התאריך
+                if (orderDateStr.includes('GMT') || orderDateStr.includes('00:00:00')) {
+                    // פורמט Date object
+                    orderDate = new Date(orderDateStr);
+                    const day = orderDate.getDate().toString().padStart(2, '0');
+                    const month = (orderDate.getMonth() + 1).toString().padStart(2, '0');
+                    const year = orderDate.getFullYear();
+                    orderDateFormatted = `${day}/${month}/${year}`;
+                } else if (orderDateStr.includes('/')) {
+                    // פורמט DD/MM/YYYY
+                    orderDateFormatted = orderDateStr;
+                    const [day, month, year] = orderDateStr.split('/').map(Number);
+                    orderDate = new Date(year, month - 1, day);
+                } else {
+                    return false;
+                }
                 
                 // הזמנות מהתאריך הראשי
-                if (orderDate === targetDateStr) {
-                    console.log('✅ הזמנה מהתאריך הרגיל:', order.customerName, orderTime);
+                if (orderDateFormatted === targetDateStr) {
+                    console.log('הזמנה מהתאריך הרגיל:', order.customerName, orderTime);
                     return true;
                 }
                 
                 // הזמנות לילה מהיום שאחרי
-                if (orderDate === nextDayStr) {
-                    const timeMatch = orderTime.match(/(\d{1,2}):(\d{2})/);
+                if (orderDateFormatted === nextDayStr) {
+                    const timeMatch = orderTime.toString().match(/(\d{1,2}):(\d{2})/);
                     if (timeMatch) {
                         const hour = parseInt(timeMatch[1]);
                         if (hour >= 0 && hour < 6) {
-                            console.log('🌙 הזמנת לילה מהיום שאחרי:', order.customerName, orderTime);
+                            console.log('הזמנת לילה מהיום שאחרי:', order.customerName, orderTime);
                             return true;
                         }
                     }
