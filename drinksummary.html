@@ -912,15 +912,62 @@
             };
         }
         
-        // ספירת אירועים ייחודיים
+        // ספירת אירועים ייחודיים - עם טיפול בהזמנות לילה
         function countUniqueEvents(orders) {
-            const uniqueDates = new Set();
+            const uniqueEventDates = new Set();
+            
+            console.log('📅 מתחיל ספירת אירועים עם טיפול בהזמנות לילה:');
+            
             orders.forEach(order => {
-                if (order.date) {
-                    uniqueDates.add(order.date);
-                }
+                if (!order.date || !order.time) return;
+                
+                const dateStr = order.date;
+                const timeStr = order.time;
+                
+                // קביעת התאריך הנכון של האירוע
+                const eventDate = getCorrectEventDate(dateStr, timeStr);
+                
+                uniqueEventDates.add(eventDate);
+                console.log(`   ${order.customerName}: ${dateStr} ${timeStr} → אירוע ${eventDate}`);
             });
-            return uniqueDates.size;
+            
+            const uniqueDatesArray = Array.from(uniqueEventDates);
+            console.log('🎯 תאריכי אירועים ייחודיים:', uniqueDatesArray);
+            console.log('📊 מספר אירועים סופי:', uniqueDatesArray.length);
+            
+            return uniqueDatesArray.length;
+        }
+        
+        // קביעת התאריך הנכון של האירוע (עם טיפול בהזמנות לילה)
+        function getCorrectEventDate(dateStr, timeStr) {
+            try {
+                // פרסור תאריך ושעה
+                const [day, month, year] = dateStr.split('/').map(Number);
+                const timeMatch = timeStr.match(/(\d{1,2}):(\d{2})/);
+                
+                if (!timeMatch) {
+                    return dateStr; // אם לא הצלחנו לפרסר שעה, מחזירים תאריך מקורי
+                }
+                
+                const hour = parseInt(timeMatch[1]);
+                
+                // אם ההזמנה בין חצות ל-6:00 - שייכת לאירוע של היום הקודם
+                if (hour >= 0 && hour < 6) {
+                    const orderDate = new Date(year, month - 1, day);
+                    orderDate.setDate(orderDate.getDate() - 1); // יום אחורה
+                    
+                    const correctedDate = `${orderDate.getDate().toString().padStart(2, '0')}/${(orderDate.getMonth() + 1).toString().padStart(2, '0')}/${orderDate.getFullYear()}`;
+                    console.log(`   🌙 הזמנת לילה: ${dateStr} ${timeStr} → אירוע ${correctedDate}`);
+                    return correctedDate;
+                }
+                
+                // הזמנה רגילה - משאירים את התאריך המקורי
+                return dateStr;
+                
+            } catch (error) {
+                console.error('שגיאה בקביעת תאריך אירוע:', error);
+                return dateStr; // במקרה של שגיאה, מחזירים תאריך מקורי
+            }
         }
         
         // הצגת תוצאות
