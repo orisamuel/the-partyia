@@ -667,9 +667,9 @@
             }
         }
         
-        // שליפת הזמנות לפי טווח תאריכים - עם סינון בצד הלקוח
+        // שליפת הזמנות לפי טווח תאריכים - עם סינון בדיקות וסינון בצד הלקוח
         async function fetchOrdersByDateRange(fromDate, toDate) {
-            console.log('=== מתחיל fetchOrdersByDateRange עם סינון בצד הלקוח ===');
+            console.log('=== מתחיל fetchOrdersByDateRange עם סינון בדיקות וסינון בצד הלקוח ===');
             console.log('טווח תאריכים:', fromDate, 'עד', toDate);
             
             const params = new URLSearchParams({
@@ -713,9 +713,21 @@
                 const allOrders = jsonResult.orders || [];
                 console.log('מספר הזמנות שהתקבלו מהשרת:', allOrders.length);
                 
-                // סינון הזמנות רלוונטיות לטווח
+                // סינון 1: הזמנות בדיקה - חדש!
+                console.log('=== מתחיל סינון הזמנות בדיקה ===');
+                const ordersWithoutTests = allOrders.filter(order => {
+                    const customerName = (order.customerName || '').toLowerCase();
+                    const isTestOrder = customerName.includes('בדיק');
+                    if (isTestOrder) {
+                        console.log('🚫 מסנן הזמנת בדיקה:', order.customerName);
+                    }
+                    return !isTestOrder;
+                });
+                console.log('מספר הזמנות אחרי סינון בדיקות:', ordersWithoutTests.length);
+                
+                // סינון 2: הזמנות רלוונטיות לטווח
                 console.log('=== מתחיל סינון הזמנות לטווח ===');
-                const relevantOrders = allOrders.filter(order => {
+                const relevantOrders = ordersWithoutTests.filter(order => {
                     const isRelevant = isRelevantForDateRange(order.date, order.time, fromDate, toDate);
                     if (!isRelevant) {
                         console.log('מסנן הזמנה:', order.customerName, order.date, order.time);
@@ -723,7 +735,7 @@
                     return isRelevant;
                 });
                 
-                console.log('מספר הזמנות אחרי סינון:', relevantOrders.length);
+                console.log('מספר הזמנות אחרי סינון טווח:', relevantOrders.length);
                 console.log('דוגמה להזמנה רלוונטית:', relevantOrders[0]);
                 
                 return relevantOrders;
