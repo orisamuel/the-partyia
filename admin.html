@@ -333,7 +333,13 @@
                     <div class="admin-card card-expenses" onclick="openExpensesSummary()">
                         <span class="icon">💰</span>
                         <h3>סיכום הוצאות לתושב</h3>
-                        <p>יצירת דוח מפורט של הוצאות כל תושב באירוע ספציפי</p>
+                        <p>יצירת דוח מפורט של הוצאות כל תושב באירוע או טווח תאריכים</p>
+                    </div>
+                    
+                    <div class="admin-card card-quantities" onclick="openQuantitiesSummary()">
+                        <span class="icon">📦</span>
+                        <h3>סיכום מוצרים ואירועים</h3>
+                        <p>דוח כמות המוצרים שנמכרו, הכנסות והנחות לפי אירוע או טווח</p>
                     </div>
                     
                     <div class="admin-card card-products" onclick="openProductsManagement()">
@@ -346,12 +352,6 @@
                         <span class="icon">👥</span>
                         <h3>ניהול תושבים</h3>
                         <p>ניהול רשימת התושבים והמידע הקשור אליהם</p>
-                    </div>
-                    
-                    <div class="admin-card card-quantities" onclick="openQuantitiesSummary()">
-                        <span class="icon">📦</span>
-                        <h3>סיכום מוצרים לאירוע</h3>
-                        <p>דוח כמות המוצרים שנמכרו באירוע לצורך רכש</p>
                     </div>
                     
                     <div class="admin-card card-timing" onclick="openTimingReport()">
@@ -377,6 +377,10 @@
             window.location.href = 'expenses-summary.html';
         }
         
+        function openQuantitiesSummary() {
+            window.location.href = 'drinksummary.html';
+        }
+        
         function openProductsManagement() {
             // TODO: פתיחת דף ניהול מוצרים
             alert('ניהול מוצרים - בפיתוח');
@@ -385,11 +389,6 @@
         function openResidentsManagement() {
             // TODO: פתיחת דף ניהול תושבים
             alert('ניהול תושבים - בפיתוח');
-        }
-        
-        function openQuantitiesSummary() {
-            // TODO: פתיחת דף סיכום מוצרים לאירוע
-            alert('סיכום מוצרים לאירוע - בפיתוח');
         }
         
         function openTimingReport() {
