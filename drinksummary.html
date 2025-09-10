@@ -831,7 +831,7 @@
             });
         }
         
-        // פילטור לפי טווח תאריכים - עם דיבוג משופר
+        // פילטור לפי טווח תאריכים - עם טיפול בפורמטים שונים
         function filterByDateRange(orders, fromDate, toDate) {
             const fromDateObj = new Date(fromDate);
             const toDateObj = new Date(toDate);
@@ -851,19 +851,31 @@
                         return false;
                     }
                     
-                    // פרסור תאריך הזמנה
-                    const dateParts = orderDateStr.split('/');
-                    if (dateParts.length !== 3) {
-                        console.log('⚠️  פורמט תאריך לא תקין:', orderDateStr);
+                    let orderDate;
+                    
+                    // זיהוי פורמט התאריך
+                    if (orderDateStr.includes('GMT') || orderDateStr.includes('00:00:00')) {
+                        // פורמט Date object: "Thu Jul 03 2025 00:00:00 GMT+0300"
+                        orderDate = new Date(orderDateStr);
+                        console.log('📅 Date object:', orderDateStr, '→', orderDate.toDateString());
+                    } else if (orderDateStr.includes('/')) {
+                        // פורמט DD/MM/YYYY: "03/07/2025"
+                        const dateParts = orderDateStr.split('/');
+                        if (dateParts.length !== 3) {
+                            console.log('⚠️  פורמט DD/MM/YYYY לא תקין:', orderDateStr);
+                            return false;
+                        }
+                        const [day, month, year] = dateParts.map(Number);
+                        orderDate = new Date(year, month - 1, day);
+                        console.log('📅 DD/MM/YYYY:', orderDateStr, '→', orderDate.toDateString());
+                    } else {
+                        console.log('⚠️  פורמט תאריך לא מוכר:', orderDateStr);
                         return false;
                     }
                     
-                    const [day, month, year] = dateParts.map(Number);
-                    const orderDate = new Date(year, month - 1, day);
-                    
                     // בדיקת תקינות התאריך
                     if (isNaN(orderDate.getTime())) {
-                        console.log('⚠️  תאריך לא תקין:', orderDateStr, '→', day, month, year);
+                        console.log('⚠️  תאריך לא תקין:', orderDateStr);
                         return false;
                     }
                     
@@ -871,7 +883,7 @@
                     
                     // דיבוג מפורט
                     if (matchCount < 10) { // מציג רק 10 הראשונים כדי לא להציף
-                        console.log(`   ${isInRange ? '✅' : '❌'} ${order.customerName}: ${orderDateStr} (${orderDate.toDateString()})`);
+                        console.log(`   ${isInRange ? '✅' : '❌'} ${order.customerName}: ${orderDate.toDateString()}`);
                     }
                     
                     if (isInRange) {
