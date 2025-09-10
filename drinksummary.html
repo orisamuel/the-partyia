@@ -206,32 +206,35 @@
             font-size: 14px;
         }
         
-        .charts-section {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
+        /* גרף יחיד */
+        .chart-section {
+            display: flex;
+            justify-content: center;
             margin-bottom: 30px;
         }
         
         .chart-container {
             background: white;
-            padding: 20px;
+            padding: 25px;
             border-radius: 12px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             border: 1px solid #e9ecef;
+            max-width: 600px;
+            width: 100%;
         }
         
         .chart-title {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: bold;
             color: #2c3e50;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             text-align: center;
         }
         
         .chart-canvas {
             width: 100%;
-            height: 300px;
+            height: 400px;
+            max-height: 400px;
         }
         
         .filters {
@@ -321,22 +324,6 @@
             font-size: 14px;
         }
         
-        .comparison-cell {
-            font-size: 12px;
-        }
-        
-        .trend-up {
-            color: #28a745;
-        }
-        
-        .trend-down {
-            color: #dc3545;
-        }
-        
-        .trend-same {
-            color: #6c757d;
-        }
-        
         .loading {
             text-align: center;
             padding: 50px;
@@ -402,9 +389,13 @@
                 gap: 15px;
             }
             
-            .charts-section {
-                grid-template-columns: 1fr;
-                gap: 20px;
+            .chart-container {
+                padding: 15px;
+            }
+            
+            .chart-canvas {
+                height: 300px;
+                max-height: 300px;
             }
             
             .summary-stats {
@@ -464,16 +455,6 @@
                     </div>
                     
                     <div class="form-group">
-                        <label for="comparisonPeriod">השווה עם:</label>
-                        <select id="comparisonPeriod">
-                            <option value="none">ללא השוואה</option>
-                            <option value="previous_week">שבוע קודם</option>
-                            <option value="previous_month">חודש קודם</option>
-                            <option value="previous_event">אירוע קודם</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
                         <button id="generateBtn" class="generate-btn">צור דוח</button>
                     </div>
                 </div>
@@ -499,18 +480,17 @@
                         <div class="stat-number" id="topProduct">-</div>
                         <div class="stat-label">המוצר הנמכר ביותר</div>
                     </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalEvents">0</div>
+                        <div class="stat-label">מספר אירועים</div>
+                    </div>
                 </div>
                 
-                <!-- גרפים -->
-                <div class="charts-section">
+                <!-- גרף -->
+                <div class="chart-section">
                     <div class="chart-container">
                         <div class="chart-title">התפלגות מכירות</div>
                         <canvas id="salesChart" class="chart-canvas"></canvas>
-                    </div>
-                    
-                    <div class="chart-container">
-                        <div class="chart-title">מוצרים פופולאריים</div>
-                        <canvas id="popularChart" class="chart-canvas"></canvas>
                     </div>
                 </div>
                 
@@ -530,7 +510,6 @@
                                 <th style="width: 100px;">כמות</th>
                                 <th style="width: 100px;">אחוז</th>
                                 <th style="width: 120px;">הכנסות</th>
-                                <th style="width: 120px;" id="comparisonHeader">השוואה</th>
                             </tr>
                         </thead>
                         <tbody id="productsTableBody">
@@ -556,10 +535,8 @@
         const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxffpyixPtnfRSgrA7eSb_1eTZ_-k4Cm4kz1Me6XeyAsouEVXyE8zmmEQWZH2gDEoZg/exec';
         
         let currentData = [];
-        let comparisonData = [];
         let productsData = {}; // מידע על המוצרים (emoji, מחיר)
         let salesChart = null;
-        let popularChart = null;
         
         // אתחול הדף
         document.addEventListener('DOMContentLoaded', function() {
@@ -631,6 +608,31 @@
             }
         }
         
+        // קיבוץ מוצרים דומים
+        function groupSimilarProducts(productName) {
+            const name = productName.toLowerCase();
+            
+            // קיבוץ יינות
+            if (name.includes('יין')) {
+                return 'יין (כל הסוגים)';
+            }
+            
+            // קיבוץ ויסקי סאוור
+            if (name.includes('ויסקי סאוור')) {
+                return 'ויסקי סאוור (כל הסוגים)';
+            }
+            
+            return productName; // ללא שינוי
+        }
+        
+        // המרת תאריך מHTML לפורמט הגיליון
+        function convertDateFormat(htmlDate) {
+            // מHTML: YYYY-MM-DD
+            // לגיליון: DD/MM/YYYY
+            const [year, month, day] = htmlDate.split('-');
+            return `${day}/${month}/${year}`;
+        }
+        
         // יצירת דוח
         async function generateReport() {
             const isSingleMode = document.getElementById('singleEventBtn').classList.contains('active');
@@ -660,15 +662,8 @@
                 const orders = await fetchOrdersData(isSingleMode, eventDate, fromDate, toDate);
                 currentData = processProductsData(orders);
                 
-                // שליפת נתוני השוואה אם נבחר
-                const comparisonPeriod = document.getElementById('comparisonPeriod').value;
-                if (comparisonPeriod !== 'none') {
-                    const comparisonOrders = await fetchComparisonData(comparisonPeriod, isSingleMode, eventDate, fromDate, toDate);
-                    comparisonData = processProductsData(comparisonOrders);
-                }
-                
                 // הצגת התוצאות
-                displayResults();
+                displayResults(orders, isSingleMode);
                 
             } catch (error) {
                 console.error('שגיאה ביצירת הדוח:', error);
@@ -680,13 +675,23 @@
         
         // שליפת נתוני הזמנות
         async function fetchOrdersData(isSingleMode, eventDate, fromDate, toDate) {
-            const params = new URLSearchParams({
-                action: isSingleMode ? 'getOrdersByEvent' : 'getRecentOrdersFromMain',
-                limit: 1000
-            });
+            let params;
             
             if (isSingleMode) {
-                params.append('eventDate', eventDate);
+                // אירוע יחיד - המרת תאריך לפורמט הגיליון
+                const convertedDate = convertDateFormat(eventDate);
+                console.log('מחפש אירוע בתאריך:', convertedDate);
+                
+                params = new URLSearchParams({
+                    action: 'getOrdersByEvent',
+                    eventDate: convertedDate
+                });
+            } else {
+                // טווח תאריכים
+                params = new URLSearchParams({
+                    action: 'getRecentOrdersFromMain',
+                    limit: 1000
+                });
             }
             
             const response = await fetch(GOOGLE_SCRIPT_URL, {
@@ -708,20 +713,24 @@
             
             // סינון לטווח תאריכים אם לא במצב אירוע יחיד
             if (!isSingleMode) {
+                const fromDateObj = new Date(fromDate);
+                const toDateObj = new Date(toDate);
+                
                 orders = orders.filter(order => {
-                    // כאן צריך להוסיף לוגיקת סינון תאריכים
-                    return true; // זמני - יחזיר הכל
+                    try {
+                        const orderDateStr = order.date || '';
+                        const [day, month, year] = orderDateStr.split('/');
+                        const orderDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+                        
+                        return orderDate >= fromDateObj && orderDate <= toDateObj;
+                    } catch (e) {
+                        return false;
+                    }
                 });
             }
             
+            console.log('נמצאו', orders.length, 'הזמנות');
             return orders;
-        }
-        
-        // שליפת נתוני השוואה
-        async function fetchComparisonData(period, isSingleMode, eventDate, fromDate, toDate) {
-            // לוגיקה לחישוב תאריכי ההשוואה
-            // זמני - יחזיר מערך ריק
-            return [];
         }
         
         // עיבוד נתוני מוצרים
@@ -751,14 +760,17 @@
                         quantity = 1;
                     }
                     
+                    // קיבוץ מוצרים דומים
+                    const groupedName = groupSimilarProducts(productName);
+                    
                     // עדכון כמויות
-                    productCounts[productName] = (productCounts[productName] || 0) + quantity;
+                    productCounts[groupedName] = (productCounts[groupedName] || 0) + quantity;
                     
                     // עדכון הכנסות
-                    const productInfo = productsData[productName];
+                    const productInfo = productsData[productName] || productsData[groupedName];
                     if (productInfo) {
                         const revenue = quantity * productInfo.price;
-                        productRevenues[productName] = (productRevenues[productName] || 0) + revenue;
+                        productRevenues[groupedName] = (productRevenues[groupedName] || 0) + revenue;
                     }
                 });
             });
@@ -768,56 +780,83 @@
                 name,
                 quantity: count,
                 revenue: productRevenues[name] || 0,
-                emoji: productsData[name]?.emoji || '🍽️',
-                price: productsData[name]?.price || 0
+                emoji: getProductEmoji(name),
+                price: getProductPrice(name)
             }));
             
             // מיון לפי כמות (יורד)
             return productsArray.sort((a, b) => b.quantity - a.quantity);
         }
         
+        // קבלת אמוג'י למוצר (כולל מוצרים מקובצים)
+        function getProductEmoji(productName) {
+            if (productName === 'יין (כל הסוגים)') return '🍷';
+            if (productName === 'ויסקי סאוור (כל הסוגים)') return '🥃';
+            
+            // חיפוש במוצרים הרגילים
+            for (const [originalName, info] of Object.entries(productsData)) {
+                if (originalName === productName) {
+                    return info.emoji;
+                }
+            }
+            
+            return '🍽️'; // ברירת מחדל
+        }
+        
+        // קבלת מחיר למוצר
+        function getProductPrice(productName) {
+            // עבור מוצרים מקובצים - נקח את המחיר הממוצע
+            if (productName === 'יין (כל הסוגים)') return 25;
+            if (productName === 'ויסקי סאוור (כל הסוגים)') return 30;
+            
+            for (const [originalName, info] of Object.entries(productsData)) {
+                if (originalName === productName) {
+                    return info.price;
+                }
+            }
+            
+            return 0;
+        }
+        
+        // ספירת אירועים ייחודיים
+        function countUniqueEvents(orders) {
+            const uniqueDates = new Set();
+            
+            orders.forEach(order => {
+                if (order.date) {
+                    uniqueDates.add(order.date);
+                }
+            });
+            
+            return uniqueDates.size;
+        }
+        
         // הצגת התוצאות
-        function displayResults() {
-            updateStatistics();
-            updateCharts();
+        function displayResults(orders, isSingleMode) {
+            updateStatistics(orders, isSingleMode);
+            updateChart();
             updateTable();
             
             document.getElementById('resultsSection').style.display = 'block';
         }
         
         // עדכון סטטיסטיקות
-        function updateStatistics() {
+        function updateStatistics(orders, isSingleMode) {
             const totalProducts = currentData.length;
             const totalQuantity = currentData.reduce((sum, item) => sum + item.quantity, 0);
             const totalRevenue = currentData.reduce((sum, item) => sum + item.revenue, 0);
             const topProduct = currentData.length > 0 ? currentData[0].name : '-';
+            const totalEvents = isSingleMode ? 1 : countUniqueEvents(orders);
             
             document.getElementById('totalProducts').textContent = totalProducts;
             document.getElementById('totalQuantity').textContent = totalQuantity;
             document.getElementById('totalRevenue').textContent = `₪${totalRevenue}`;
             document.getElementById('topProduct').textContent = topProduct;
+            document.getElementById('totalEvents').textContent = totalEvents;
         }
         
-        // עדכון גרפים - מתוקן עם דיבוג
-        function updateCharts() {
-            console.log('📈 מעדכן גרפים...');
-            
-            if (currentData.length === 0) {
-                console.log('❌ אין נתונים לגרפים');
-                return;
-            }
-            
-            // גרף התפלגות מכירות
-            updateSalesChart();
-            
-            // גרף מוצרים פופולאריים
-            updatePopularChart();
-            
-            console.log('✅ גרפים עודכנו');
-        }
-        
-        // גרף התפלגות מכירות (Doughnut) - מתוקן עם דיבוג
-        function updateSalesChart() {
+        // עדכון גרף עוגה עם מספרים
+        function updateChart() {
             console.log('🍩 מעדכן גרף עוגה...');
             
             const ctx = document.getElementById('salesChart').getContext('2d');
@@ -827,7 +866,14 @@
                 console.log('🗑️ הסיר גרף קודם');
             }
             
+            if (currentData.length === 0) {
+                console.log('❌ אין נתונים לגרף');
+                return;
+            }
+            
             const top10 = currentData.slice(0, 10);
+            const totalQuantity = currentData.reduce((sum, item) => sum + item.quantity, 0);
+            
             console.log('🔝 TOP 10 מוצרים לגרף עוגה:', top10.map(item => `${item.name}: ${item.quantity}`));
             
             const colors = [
@@ -841,7 +887,7 @@
                     labels: top10.map(item => item.name),
                     datasets: [{
                         data: top10.map(item => item.quantity),
-                        backgroundColor: colors,
+                        backgroundColor: colors.slice(0, top10.length),
                         borderWidth: 2,
                         borderColor: '#fff'
                     }]
@@ -851,87 +897,71 @@
                     maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            position: 'right',
+                            position: 'bottom',
                             labels: {
                                 usePointStyle: true,
                                 font: {
                                     size: 12
+                                },
+                                padding: 15
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const quantity = context.parsed;
+                                    const percentage = ((quantity / totalQuantity) * 100).toFixed(1);
+                                    return `${context.label}: ${quantity} יחידות (${percentage}%)`;
                                 }
                             }
                         }
+                    },
+                    // הוספת מספרים על הגרף
+                    animation: {
+                        animateScale: true,
+                        animateRotate: true
                     }
-                }
+                },
+                plugins: [{
+                    afterDatasetsDraw: function(chart) {
+                        const ctx = chart.ctx;
+                        chart.data.datasets.forEach((dataset, i) => {
+                            const meta = chart.getDatasetMeta(i);
+                            meta.data.forEach((element, index) => {
+                                const quantity = dataset.data[index];
+                                const percentage = ((quantity / totalQuantity) * 100).toFixed(1);
+                                
+                                // מיקום הטקסט
+                                const position = element.tooltipPosition();
+                                
+                                // עיצוב הטקסט
+                                ctx.fillStyle = '#fff';
+                                ctx.font = 'bold 12px Arial';
+                                ctx.textAlign = 'center';
+                                ctx.textBaseline = 'middle';
+                                
+                                // רק אם הפלח גדול מספיק
+                                if (percentage > 5) {
+                                    ctx.fillText(`${quantity}`, position.x, position.y - 5);
+                                    ctx.fillText(`(${percentage}%)`, position.x, position.y + 8);
+                                }
+                            });
+                        });
+                    }
+                }]
             });
             
             console.log('✅ גרף עוגה נוצר');
         }
         
-        // גרף מוצרים פופולאריים (Bar) - מתוקן עם דיבוג
-        function updatePopularChart() {
-            console.log('📊 מעדכן גרף עמודות...');
-            
-            const ctx = document.getElementById('popularChart').getContext('2d');
-            
-            if (popularChart) {
-                popularChart.destroy();
-                console.log('🗑️ הסיר גרף קודם');
-            }
-            
-            const top8 = currentData.slice(0, 8);
-            console.log('🔝 TOP 8 מוצרים לגרף עמודות:', top8.map(item => `${item.name}: ${item.quantity}`));
-            
-            popularChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: top8.map(item => item.name),
-                    datasets: [{
-                        label: 'כמות',
-                        data: top8.map(item => item.quantity),
-                        backgroundColor: '#E67E22',
-                        borderColor: '#D35400',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                stepSize: 1
-                            }
-                        }
-                    }
-                }
-            });
-            
-            console.log('✅ גרף עמודות נוצר');
-        }
-        
         // עדכון טבלה
         function updateTable() {
             const tbody = document.getElementById('productsTableBody');
-            const comparisonPeriod = document.getElementById('comparisonPeriod').value;
-            
-            // עדכון כותרת השוואה
-            const comparisonHeader = document.getElementById('comparisonHeader');
-            if (comparisonPeriod === 'none') {
-                comparisonHeader.style.display = 'none';
-            } else {
-                comparisonHeader.style.display = 'table-cell';
-                comparisonHeader.textContent = getComparisonHeaderText(comparisonPeriod);
-            }
             
             if (currentData.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="5" class="no-data">
+                        <td colspan="4" class="no-data">
                             אין נתונים להצגה עבור התקופה שנבחרה
                         </td>
                     </tr>
@@ -944,12 +974,6 @@
             tbody.innerHTML = currentData.map(item => {
                 const percentage = totalQuantity > 0 ? ((item.quantity / totalQuantity) * 100).toFixed(1) : 0;
                 
-                let comparisonCell = '';
-                if (comparisonPeriod !== 'none') {
-                    const comparisonItem = comparisonData.find(comp => comp.name === item.name);
-                    comparisonCell = createComparisonCell(item.quantity, comparisonItem?.quantity || 0);
-                }
-                
                 return `
                     <tr>
                         <td>
@@ -961,40 +985,9 @@
                         <td class="quantity-cell">${item.quantity}</td>
                         <td class="percentage-cell">${percentage}%</td>
                         <td class="quantity-cell">₪${item.revenue}</td>
-                        <td class="comparison-cell" style="display: ${comparisonPeriod === 'none' ? 'none' : 'table-cell'}">
-                            ${comparisonCell}
-                        </td>
                     </tr>
                 `;
             }).join('');
-        }
-        
-        // יצירת תא השוואה
-        function createComparisonCell(current, previous) {
-            if (previous === 0) {
-                return '<span class="trend-up">🆕 חדש</span>';
-            }
-            
-            const diff = current - previous;
-            const diffPercentage = ((diff / previous) * 100).toFixed(1);
-            
-            if (diff > 0) {
-                return `<span class="trend-up">▲ +${diff} (${diffPercentage}%)</span>`;
-            } else if (diff < 0) {
-                return `<span class="trend-down">▼ ${diff} (${diffPercentage}%)</span>`;
-            } else {
-                return '<span class="trend-same">— ללא שינוי</span>';
-            }
-        }
-        
-        // כותרת השוואה
-        function getComparisonHeaderText(period) {
-            switch (period) {
-                case 'previous_week': return 'השוואה לשבוע קודם';
-                case 'previous_month': return 'השוואה לחודש קודם';
-                case 'previous_event': return 'השוואה לאירוע קודם';
-                default: return 'השוואה';
-            }
         }
         
         // יצוא לאקסל
