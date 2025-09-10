@@ -831,28 +831,62 @@
             });
         }
         
-        // פילטור לפי טווח תאריכים
+        // פילטור לפי טווח תאריכים - עם דיבוג משופר
         function filterByDateRange(orders, fromDate, toDate) {
             const fromDateObj = new Date(fromDate);
             const toDateObj = new Date(toDate);
             
-            return orders.filter(order => {
+            console.log('🔍 מפלטר לטווח:');
+            console.log('   מתאריך:', fromDateObj.toDateString());
+            console.log('   עד תאריך:', toDateObj.toDateString());
+            
+            let matchCount = 0;
+            
+            const filtered = orders.filter(order => {
                 try {
                     const orderDateStr = order.date || '';
-                    const [day, month, year] = orderDateStr.split('/').map(Number);
+                    
+                    if (!orderDateStr) {
+                        console.log('⚠️  הזמנה ללא תאריך:', order.customerName);
+                        return false;
+                    }
+                    
+                    // פרסור תאריך הזמנה
+                    const dateParts = orderDateStr.split('/');
+                    if (dateParts.length !== 3) {
+                        console.log('⚠️  פורמט תאריך לא תקין:', orderDateStr);
+                        return false;
+                    }
+                    
+                    const [day, month, year] = dateParts.map(Number);
                     const orderDate = new Date(year, month - 1, day);
+                    
+                    // בדיקת תקינות התאריך
+                    if (isNaN(orderDate.getTime())) {
+                        console.log('⚠️  תאריך לא תקין:', orderDateStr, '→', day, month, year);
+                        return false;
+                    }
                     
                     const isInRange = orderDate >= fromDateObj && orderDate <= toDateObj;
                     
+                    // דיבוג מפורט
+                    if (matchCount < 10) { // מציג רק 10 הראשונים כדי לא להציף
+                        console.log(`   ${isInRange ? '✅' : '❌'} ${order.customerName}: ${orderDateStr} (${orderDate.toDateString()})`);
+                    }
+                    
                     if (isInRange) {
-                        console.log('📅 הזמנה בטווח:', order.customerName, orderDateStr);
+                        matchCount++;
                     }
                     
                     return isInRange;
                 } catch (e) {
+                    console.log('❌ שגיאה בעיבוד תאריך:', e.message, 'עבור הזמנה:', order.customerName);
                     return false;
                 }
             });
+            
+            console.log('📊 נמצאו', matchCount, 'הזמנות בטווח');
+            return filtered;
         }
         
         // עיבוד נתוני מוצרים
