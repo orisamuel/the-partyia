@@ -625,14 +625,6 @@
             return productName; // ללא שינוי
         }
         
-        // המרת תאריך מHTML לפורמט הגיליון
-        function convertDateFormat(htmlDate) {
-            // מHTML: YYYY-MM-DD
-            // לגיליון: DD/MM/YYYY
-            const [year, month, day] = htmlDate.split('-');
-            return `${day}/${month}/${year}`;
-        }
-        
         // יצירת דוח
         async function generateReport() {
             const isSingleMode = document.getElementById('singleEventBtn').classList.contains('active');
@@ -675,23 +667,13 @@
         
         // שליפת נתוני הזמנות
         async function fetchOrdersData(isSingleMode, eventDate, fromDate, toDate) {
-            let params;
+            const params = new URLSearchParams({
+                action: isSingleMode ? 'getOrdersByEvent' : 'getRecentOrdersFromMain',
+                limit: 1000
+            });
             
             if (isSingleMode) {
-                // אירוע יחיד - המרת תאריך לפורמט הגיליון
-                const convertedDate = convertDateFormat(eventDate);
-                console.log('מחפש אירוע בתאריך:', convertedDate);
-                
-                params = new URLSearchParams({
-                    action: 'getOrdersByEvent',
-                    eventDate: convertedDate
-                });
-            } else {
-                // טווח תאריכים
-                params = new URLSearchParams({
-                    action: 'getRecentOrdersFromMain',
-                    limit: 1000
-                });
+                params.append('eventDate', eventDate);
             }
             
             const response = await fetch(GOOGLE_SCRIPT_URL, {
@@ -713,23 +695,12 @@
             
             // סינון לטווח תאריכים אם לא במצב אירוע יחיד
             if (!isSingleMode) {
-                const fromDateObj = new Date(fromDate);
-                const toDateObj = new Date(toDate);
-                
                 orders = orders.filter(order => {
-                    try {
-                        const orderDateStr = order.date || '';
-                        const [day, month, year] = orderDateStr.split('/');
-                        const orderDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-                        
-                        return orderDate >= fromDateObj && orderDate <= toDateObj;
-                    } catch (e) {
-                        return false;
-                    }
+                    // כאן צריך להוסיף לוגיקת סינון תאריכים
+                    return true; // זמני - יחזיר הכל
                 });
             }
             
-            console.log('נמצאו', orders.length, 'הזמנות');
             return orders;
         }
         
