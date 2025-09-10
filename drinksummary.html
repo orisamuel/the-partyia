@@ -529,16 +529,16 @@
                         <div class="stat-label">יחידות שנמכרו</div>
                     </div>
                     <div class="stat-card">
-                        <span class="stat-number" id="initialRevenue">₪0</span>
-                        <div class="stat-label">הכנסה ראשונית</div>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-number negative" id="totalDiscounts">₪0</span>
-                        <div class="stat-label">הנחות ומבצעים</div>
+                        <span class="stat-number" id="theoreticalRevenue">₪0</span>
+                        <div class="stat-label">הכנסה תיאורטית</div>
                     </div>
                     <div class="stat-card">
                         <span class="stat-number positive" id="actualRevenue">₪0</span>
                         <div class="stat-label">הכנסות בפועל</div>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number negative" id="totalDiscounts">₪0</span>
+                        <div class="stat-label">הנחות ומבצעים</div>
                     </div>
                     <div class="stat-card">
                         <span class="stat-number" id="totalEvents">0</span>
@@ -570,7 +570,7 @@
                                 <th style="width: 300px;">קטגוריית מוצר</th>
                                 <th style="width: 100px;">כמות</th>
                                 <th style="width: 100px;">אחוז</th>
-                                <th style="width: 120px;">הכנסות</th>
+                                <th style="width: 120px;">הכנסות תיאורטיות</th>
                             </tr>
                         </thead>
                         <tbody id="productsTableBody">
@@ -600,6 +600,7 @@
         let currentData = [];
         let productsData = {}; // מידע על מוצרים מהשרת
         let salesChart = null;
+        let actualTotalRevenue = 0; // הכנסות ממשיות מהגליון הראשי - חדש!
         
         // הגדרות צבעים
         const COLORS = [
@@ -758,7 +759,7 @@
                 const orders = await fetchOrdersData(isSingleMode, eventDate, fromDate, toDate);
                 console.log('📋 התקבלו', orders.length, 'הזמנות');
                 
-                // עיבוד נתונים
+                // עיבוד נתונים - עם חישוב נכון של הכנסות ממשיות
                 currentData = processProductsData(orders);
                 console.log('📊 עובד עם', currentData.length, 'קטגוריות מוצרים');
                 
@@ -773,9 +774,9 @@
             }
         }
         
-        // שליפת נתוני הזמנות - תמיד מהגיליון הראשי
+        // שליפת נתוני הזמנות - תמיד מהגיליון הראשי עם סינון בדיקות
         async function fetchOrdersData(isSingleMode, eventDate, fromDate, toDate) {
-            console.log('🌐 שואב את כל הנתונים מהשרת...');
+            console.log('🌐 שואב את כל הנתונים מהשרת (עם סינון בדיקות)...');
             
             // תמיד שואבים הכל מהגיליון הראשי
             const params = new URLSearchParams({
@@ -809,7 +810,7 @@
                 });
             }
             
-            // סינון 1: הזמנות בדיקה
+            // סינון 1: הזמנות בדיקה - חדש!
             orders = orders.filter(order => {
                 const customerName = (order.customerName || '').trim().toLowerCase();
                 const isTestOrder = customerName.includes('בדיק');
@@ -966,14 +967,21 @@
             return filtered;
         }
         
-        // עיבוד נתוני מוצרים - עם חישוב הנחות ודיבוג מפורט
+        // עיבוד נתוני מוצרים - עם חישוב נכון של הכנסות ממשיות והנחות
         function processProductsData(orders) {
-            console.log('⚙️ מתחיל עיבוד נתוני מוצרים...');
+            console.log('⚙️ מתחיל עיבוד נתוני מוצרים עם חישוב נכון של הכנסות...');
             
             const productCounts = {};
-            const productRevenues = {};
             const productDetails = {}; // פירוט מוצרים בכל קטגוריה
-            let totalDiscounts = 0; // סכום הנחות
+            
+            // חישוב הכנסות ממשיות מעמודת הסכום בגליון - חדש!
+            actualTotalRevenue = orders.reduce((sum, order) => {
+                const total = parseInt(order.total) || 0;
+                console.log(`💰 הזמנה ${order.customerName}: ₪${total}`);
+                return sum + total;
+            }, 0);
+            
+            console.log('💰 סה"כ הכנסות ממשיות מהגליון:', actualTotalRevenue, '₪');
             
             orders.forEach(order => {
                 const products = (order.products || '').split(', ');
@@ -983,18 +991,10 @@
                     const product = productStr.trim();
                     console.log(`  📝 בודק פריט: "${product}"`);
                     
-                    // בדיקה אם זה הנחה - דיבוג מפורט
-                    if (product.toLowerCase().includes('הנחה')) {
-                        console.log(`  💸 זיהוי הנחה: "${product}"`);
-                        const discountAmount = extractDiscountAmount(product);
-                        totalDiscounts += discountAmount;
-                        console.log(`  💸 הנחה נמצאה: ${product} → ${discountAmount}₪ (סה"כ הנחות: ${totalDiscounts}₪)`);
-                        return; // לא ממשיכים לעיבוד כמוצר
-                    }
-                    
-                    // דילוג על פריטים שאינם מוצרים
-                    if (!product || product.includes('₪') || product.includes('טיפ')) {
-                        console.log(`  ⏭️ מדלג על פריט: "${product}"`);
+                    // דילוג על פריטים שאינם מוצרים פיזיים
+                    if (!product || product.includes('₪') || product.includes('טיפ') || 
+                        product.toLowerCase().includes('הנחה') || product.toLowerCase().includes('סכום חופשי')) {
+                        console.log(`  ⏭️ מדלג על פריט לא פיזי: "${product}"`);
                         return;
                     }
                     
@@ -1016,7 +1016,7 @@
                     const groupInfo = getProductGroup(productName);
                     const groupName = groupInfo.name;
                     
-                    console.log(`  📊 קבוצה: "${groupName}" מחיר: ₪${groupInfo.price}`);
+                    console.log(`  📊 קבוצה: "${groupName}" מחיר תיאורטי: ₪${groupInfo.price}`);
                     
                     // עדכון כמויות כלליות
                     productCounts[groupName] = (productCounts[groupName] || 0) + quantity;
@@ -1026,23 +1026,18 @@
                         productDetails[groupName] = {};
                     }
                     productDetails[groupName][productName] = (productDetails[groupName][productName] || 0) + quantity;
-                    
-                    // עדכון הכנסות תאורטיות
-                    const revenue = quantity * groupInfo.price;
-                    productRevenues[groupName] = (productRevenues[groupName] || 0) + revenue;
-                    
-                    console.log(`  💰 הכנסה: ${quantity} × ₪${groupInfo.price} = ₪${revenue}`);
                 });
             });
             
-            // המרה למערך מסודר
+            // המרה למערך מסודר עם הכנסות תיאורטיות
             const productsArray = Object.entries(productCounts).map(([groupName, totalCount]) => {
                 const groupInfo = getProductGroupByName(groupName);
+                const theoreticalRevenue = totalCount * groupInfo.price; // הכנסה תיאורטית
                 
                 return {
                     name: groupName,
                     quantity: totalCount,
-                    revenue: productRevenues[groupName] || 0,
+                    theoreticalRevenue: theoreticalRevenue,
                     emoji: groupInfo.emoji,
                     price: groupInfo.price,
                     details: productDetails[groupName] || {}
@@ -1052,39 +1047,17 @@
             // מיון לפי כמות (יורד)
             const sorted = productsArray.sort((a, b) => b.quantity - a.quantity);
             
-            // שמירת נתוני הנחות
-            sorted.totalDiscounts = totalDiscounts;
-            
             console.log('✅ עיבוד הסתיים:');
             console.log('  📊 קטגוריות:', sorted.length);
-            console.log('  💸 סה"כ הנחות:', totalDiscounts, '₪');
-            console.log('  💰 סה"כ הכנסות:', sorted.reduce((sum, item) => sum + item.revenue, 0), '₪');
+            console.log('  💰 הכנסות ממשיות:', actualTotalRevenue, '₪');
+            const totalTheoreticalRevenue = sorted.reduce((sum, item) => sum + item.theoreticalRevenue, 0);
+            console.log('  💰 הכנסות תיאורטיות:', totalTheoreticalRevenue, '₪');
+            console.log('  💸 הנחות/מבצעים:', (totalTheoreticalRevenue - actualTotalRevenue), '₪');
             
             return sorted;
         }
         
-        // חילוץ סכום הנחה מטקסט
-        function extractDiscountAmount(discountText) {
-            // חיפוש דפוסים כמו: "הנחה -₪20", "הנחה: שת״פ -₪15", "-20₪"
-            const patterns = [
-                /-₪(\d+)/,           // -₪20
-                /-(\d+)₪/,           // -20₪  
-                /הנחה.*?(\d+)/,      // הנחה: משהו 20
-                /-(\d+)/             // -20
-            ];
-            
-            for (const pattern of patterns) {
-                const match = discountText.match(pattern);
-                if (match) {
-                    return parseInt(match[1]) || 0;
-                }
-            }
-            
-            console.log('⚠️ לא הצלחתי לחלץ סכום הנחה מ:', discountText);
-            return 0;
-        }
-        
-        // קביעת קבוצת מוצר - ללא מחיר ברירת מחדל
+        // קביעת קבוצת מוצר
         function getProductGroup(productName) {
             const nameLower = productName.toLowerCase();
             
@@ -1101,7 +1074,7 @@
             const productInfo = productsData[productName];
             
             if (!productInfo) {
-                console.log('❌ מוצר לא נמצא במאגר:', productName, '- הכנסות לא יחושבו');
+                console.log('❌ מוצר לא נמצא במאגר:', productName);
             }
             
             return {
@@ -1111,7 +1084,7 @@
             };
         }
         
-        // קבלת מידע קבוצה לפי שם - ללא מחיר ברירת מחדל
+        // קבלת מידע קבוצה לפי שם
         function getProductGroupByName(groupName) {
             // חיפוש בקבוצות מוגדרות
             for (const group of Object.values(PRODUCT_GROUPS)) {
@@ -1215,28 +1188,27 @@
             document.getElementById('resultsSection').style.display = 'block';
         }
         
-        // עדכון סטטיסטיקות - עם פירוט הכנסות
+        // עדכון סטטיסטיקות - עם חישוב נכון של הנחות
         function updateStatistics(orders, isSingleMode) {
             const totalProducts = currentData.length;
             const totalQuantity = currentData.reduce((sum, item) => sum + item.quantity, 0);
-            const initialRevenue = currentData.reduce((sum, item) => sum + item.revenue, 0);
-            const totalDiscounts = currentData.totalDiscounts || 0;
-            const actualRevenue = initialRevenue - totalDiscounts;
+            const theoreticalRevenue = currentData.reduce((sum, item) => sum + item.theoreticalRevenue, 0);
+            const totalDiscounts = Math.max(0, theoreticalRevenue - actualTotalRevenue); // חישוב נכון של הנחות
             const topProduct = currentData.length > 0 ? currentData[0].name : '-';
             const totalEvents = isSingleMode ? 1 : countUniqueEvents(orders);
             
             document.getElementById('totalProducts').textContent = totalProducts;
             document.getElementById('totalQuantity').textContent = totalQuantity;
-            document.getElementById('initialRevenue').textContent = `₪${initialRevenue.toLocaleString()}`;
+            document.getElementById('theoreticalRevenue').textContent = `₪${theoreticalRevenue.toLocaleString()}`;
+            document.getElementById('actualRevenue').textContent = `₪${actualTotalRevenue.toLocaleString()}`;
             document.getElementById('totalDiscounts').textContent = `₪${totalDiscounts.toLocaleString()}`;
-            document.getElementById('actualRevenue').textContent = `₪${actualRevenue.toLocaleString()}`;
             document.getElementById('topProduct').textContent = topProduct;
             document.getElementById('totalEvents').textContent = totalEvents;
             
             console.log('📊 סטטיסטיקות:');
-            console.log('   הכנסה ראשונית:', initialRevenue);
-            console.log('   הנחות:', totalDiscounts);
-            console.log('   הכנסות בפועל:', actualRevenue);
+            console.log('   הכנסה תיאורטית:', theoreticalRevenue);
+            console.log('   הכנסות בפועל:', actualTotalRevenue);
+            console.log('   הנחות/מבצעים:', totalDiscounts);
         }
         
         // עדכון גרף עוגה עם תוויות
@@ -1344,7 +1316,7 @@
                         </td>
                         <td class="quantity-cell">${item.quantity}</td>
                         <td class="percentage-cell">${percentage}%</td>
-                        <td class="revenue-cell">₪${item.revenue.toLocaleString()}</td>
+                        <td class="revenue-cell">₪${item.theoreticalRevenue.toLocaleString()}</td>
                     </tr>
                 `;
             }).join('');
@@ -1363,15 +1335,14 @@
             const toDate = document.getElementById('toDate').value;
             
             const totalQuantity = currentData.reduce((sum, item) => sum + item.quantity, 0);
-            const initialRevenue = currentData.reduce((sum, item) => sum + item.revenue, 0);
-            const totalDiscounts = currentData.totalDiscounts || 0;
-            const actualRevenue = initialRevenue - totalDiscounts;
+            const theoreticalRevenue = currentData.reduce((sum, item) => sum + item.theoreticalRevenue, 0);
+            const totalDiscounts = Math.max(0, theoreticalRevenue - actualTotalRevenue);
             
-            // נתוני סיכום
+            // נתוני סיכום - מעודכן עם הנחות נכונות
             const summaryData = [
-                { 'סטטיסטיקה': 'הכנסה ראשונית', 'ערך': `₪${initialRevenue.toLocaleString()}` },
+                { 'סטטיסטיקה': 'הכנסה תיאורטית', 'ערך': `₪${theoreticalRevenue.toLocaleString()}` },
+                { 'סטטיסטיקה': 'הכנסות בפועל', 'ערך': `₪${actualTotalRevenue.toLocaleString()}` },
                 { 'סטטיסטיקה': 'הנחות ומבצעים', 'ערך': `₪${totalDiscounts.toLocaleString()}` },
-                { 'סטטיסטיקה': 'הכנסות בפועל', 'ערך': `₪${actualRevenue.toLocaleString()}` },
                 { 'סטטיסטיקה': 'יחידות שנמכרו', 'ערך': totalQuantity.toLocaleString() }
             ];
             
@@ -1389,7 +1360,7 @@
                     'פירוט': details || item.name,
                     'כמות': item.quantity,
                     'אחוז': `${percentage}%`,
-                    'הכנסות': item.revenue,
+                    'הכנסות תיאורטיות': item.theoreticalRevenue,
                     'מחיר ממוצע': item.price
                 };
             });
