@@ -113,6 +113,12 @@
             overflow: hidden;
         }
         
+        /* הוספת עיצוב למצב זיכוי */
+        .container.credit-mode {
+            box-shadow: 0 25px 50px rgba(220, 53, 69, 0.2);
+            border: 2px solid rgba(220, 53, 69, 0.3);
+        }
+        
         /* Header מודרני */
         .header {
             background: linear-gradient(135deg, #2c3e50, #34495e);
@@ -121,6 +127,11 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+        }
+        
+        /* הוספת עיצוב להדר במצב זיכוי */
+        .header.credit-mode {
+            background: linear-gradient(135deg, #dc3545, #c82333);
         }
         
         .header-left {
@@ -307,6 +318,48 @@
             border-color: #17a2b8;
         }
         
+        /* עיצוב כפתור זיכוי חדש */
+        .credit-btn {
+            background: white;
+            color: #dc3545;
+            border: 2px solid #dc3545;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        
+        .credit-btn:hover {
+            background: rgba(220, 53, 69, 0.1);
+        }
+        
+        .credit-btn.active {
+            background: #dc3545;
+            color: white;
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+        }
+        
+        /* הודעת מצב זיכוי */
+        .credit-mode-indicator {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 16px;
+            display: none;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        .credit-mode-indicator.active {
+            display: block;
+        }
+        
         .name-validation-msg {
             display: none;
             color: #dc3545;
@@ -353,6 +406,13 @@
             color: white;
             transform: translateY(-2px);
             box-shadow: 0 12px 35px rgba(230, 126, 34, 0.25);
+        }
+        
+        /* במצב זיכוי - מוצרים נבחרים בצבע אדום */
+        .credit-mode .product-card.selected {
+            border-color: #dc3545;
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            box-shadow: 0 12px 35px rgba(220, 53, 69, 0.25);
         }
         
         .product-emoji {
@@ -429,6 +489,12 @@
             top: 20px;
         }
         
+        /* במצב זיכוי - סיידבר עם גוון אדום */
+        .credit-mode .form-sidebar {
+            background: linear-gradient(135deg, #fff5f5, #ffe0e0);
+            border: 2px solid rgba(220, 53, 69, 0.2);
+        }
+        
         .sidebar-section {
             margin-bottom: 20px;
         }
@@ -502,6 +568,11 @@
             margin-bottom: 20px;
         }
         
+        /* במצב זיכוי - סכום בצבע אדום */
+        .credit-mode .total-section {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+        }
+        
         .total-amount {
             font-size: 28px;
             font-weight: bold;
@@ -536,6 +607,15 @@
             background: #6c757d;
             cursor: not-allowed;
             transform: none;
+        }
+        
+        /* כפתור אישור במצב זיכוי */
+        .submit-btn.credit-mode {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+        }
+        
+        .submit-btn.credit-mode:hover:not(:disabled) {
+            box-shadow: 0 8px 25px rgba(220, 53, 69, 0.3);
         }
         
         .submit-btn.loading {
@@ -730,8 +810,8 @@
 
     <!-- תוכן ראשי -->
     <div class="main-content" id="mainContent">
-        <div class="container">
-            <div class="header">
+        <div class="container" id="mainContainer">
+            <div class="header" id="mainHeader">
                 <div class="header-left">
                     <a href="admin.html">
                        <img src="logo.png" alt="לוגו הפרתיה" class="header-logo">
@@ -744,7 +824,12 @@
                 <a href="admin.html" class="admin-link">🔧 כלי ניהול</a>
             </div>
             
-            <div class="content">
+            <div class="content" id="mainContentArea">
+                <!-- הוספת אינדיקטור מצב זיכוי -->
+                <div class="credit-mode-indicator" id="creditModeIndicator">
+                    ⚠️ מצב זיכוי פעיל - כל הסכומים יירשמו כזיכוי (מינוס)
+                </div>
+                
                 <form id="orderForm">
                     <div class="form-layout">
                         <!-- עמודה ראשית -->
@@ -753,6 +838,7 @@
                                 <div class="section-header">
                                     <div class="section-title">🍻 מי בא לשתות?</div>
                                     <div class="guest-toggle">
+                                        <button type="button" id="creditBtn" class="credit-btn">💳 זיכוי</button>
                                         <button type="button" id="guestBtn" class="guest-btn">תושב נופי פרת שאינו ברשימה</button>
                                         <button type="button" id="kfarAdumimBtn" class="guest-btn kfar-btn">כפר אדומים</button>
                                         <button type="button" id="alonBtn" class="guest-btn alon-btn">אלון</button>
@@ -816,7 +902,7 @@
                             
                             <div class="total-section">
                                 <div class="total-amount" id="totalAmount">₪0</div>
-                                <div class="total-label">סכום כולל</div>
+                                <div class="total-label" id="totalLabel">סכום כולל</div>
                             </div>
                             
                             <button type="submit" class="submit-btn" id="submitBtn" disabled>
@@ -858,6 +944,7 @@
         let selectedAutocompleteIndex = -1;
         let isValidSelection = false; // האם נבחר שם תקין
         let currentResidenceType = ''; // סוג התושב הנוכחי
+        let isCreditMode = false; // משתנה חדש למצב זיכוי
         
         // עדכון טקסט טעינה
         function updateLoadingProgress(text) {
@@ -1022,6 +1109,46 @@
             });
         }
         
+        // הוספת פונקציה לטיפול במצב זיכוי
+        function toggleCreditMode() {
+            const creditBtn = document.getElementById('creditBtn');
+            const container = document.getElementById('mainContainer');
+            const header = document.getElementById('mainHeader');
+            const contentArea = document.getElementById('mainContentArea');
+            const indicator = document.getElementById('creditModeIndicator');
+            const submitBtn = document.getElementById('submitBtn');
+            const totalLabel = document.getElementById('totalLabel');
+            
+            isCreditMode = !isCreditMode;
+            
+            if (isCreditMode) {
+                // הפעלת מצב זיכוי
+                creditBtn.classList.add('active');
+                creditBtn.innerHTML = '✓ מצב זיכוי פעיל';
+                container.classList.add('credit-mode');
+                header.classList.add('credit-mode');
+                contentArea.classList.add('credit-mode');
+                indicator.classList.add('active');
+                submitBtn.classList.add('credit-mode');
+                submitBtn.textContent = '💳 אישור זיכוי';
+                totalLabel.textContent = 'סכום זיכוי';
+            } else {
+                // ביטול מצב זיכוי
+                creditBtn.classList.remove('active');
+                creditBtn.innerHTML = '💳 זיכוי';
+                container.classList.remove('credit-mode');
+                header.classList.remove('credit-mode');
+                contentArea.classList.remove('credit-mode');
+                indicator.classList.remove('active');
+                submitBtn.classList.remove('credit-mode');
+                submitBtn.textContent = '✅ אישור הזמנה';
+                totalLabel.textContent = 'סכום כולל';
+            }
+            
+            // עדכון הסכום
+            updateTotal();
+        }
+        
         // Autocomplete לשמות תושבים - מתוקן ללא readOnly
         function setupAutocomplete() {
             const nameInput = document.getElementById('customerName');
@@ -1029,7 +1156,11 @@
             const guestBtn = document.getElementById('guestBtn');
             const kfarAdumimBtn = document.getElementById('kfarAdumimBtn');
             const alonBtn = document.getElementById('alonBtn');
+            const creditBtn = document.getElementById('creditBtn');
             const validationMsg = document.getElementById('nameValidationMsg');
+            
+            // הוספת event listener לכפתור הזיכוי
+            creditBtn.addEventListener('click', toggleCreditMode);
             
             // פונקציה לאיפוס כל הכפתורים
             function resetAllButtons() {
@@ -1278,6 +1409,7 @@
             updateSubmitButton();
         }
         
+        // עדכון פונקציית חישוב הסכום למצב זיכוי
         function updateTotal() {
             const productsTotal = Object.values(selectedItems).reduce((sum, item) => 
                 sum + (item.price * item.quantity), 0);
@@ -1290,7 +1422,14 @@
             const discountAmountDesktop = parseInt(document.getElementById('discountAmountDesktop').value) || 0;
             const discountAmount = discountAmountMobile + discountAmountDesktop;
             
-            const total = Math.max(0, productsTotal + customAmount - discountAmount);
+            let total;
+            if (isCreditMode) {
+                // במצב זיכוי - הכל הופך לשלילי (ללא הנחות)
+                total = -(productsTotal + customAmount);
+            } else {
+                // במצב רגיל - חישוב עם הנחות
+                total = Math.max(0, productsTotal + customAmount - discountAmount);
+            }
             
             document.getElementById('totalAmount').textContent = `₪${total}`;
         }
@@ -1327,7 +1466,8 @@
                     products: orderData.products,
                     total: orderData.total,
                     timestamp: orderData.timestamp,
-                    residenceType: orderData.residenceType || ''
+                    residenceType: orderData.residenceType || '',
+                    isCredit: orderData.isCredit || false // הוספת פרמטר זיכוי
                 });
                 
                 console.log('פרמטרים:', params.toString());
@@ -1364,7 +1504,7 @@
             }
         }
         
-        // שליחת טופס
+        // שליחת טופס - עדכון לתמיכה במצב זיכוי
         document.getElementById('orderForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -1390,41 +1530,72 @@
                 return;
             }
             
+            // בדיקה: אם הנחה גדולה מסכום המוצרים במצב רגיל
+            const productsTotal = Object.values(selectedItems).reduce((sum, item) => 
+                sum + (item.price * item.quantity), 0);
+            
+            if (!isCreditMode && discountAmount > (productsTotal + customAmount)) {
+                showStatus(`ההנחה (₪${discountAmount}) גדולה מסכום ההזמנה (₪${productsTotal + customAmount}). לזיכוי לקוח - השתמש בכפתור 'זיכוי'`, 'error');
+                return;
+            }
+            
             // חיווי מיידי
             submitBtn.disabled = true;
             submitBtn.classList.add('loading');
             const originalText = submitBtn.textContent;
-            submitBtn.textContent = 'מאשר...';
+            submitBtn.textContent = isCreditMode ? 'מבצע זיכוי...' : 'מאשר...';
             
             const productsList = [];
-            for (const [name, item] of Object.entries(selectedItems)) {
-                if (item.quantity > 1) {
-                    productsList.push(`${name} (${item.quantity})`);
-                } else {
-                    productsList.push(name);
+            
+            if (isCreditMode) {
+                // במצב זיכוי - מוסיפים "זיכוי:" לכל מוצר וכמות שלילית
+                for (const [name, item] of Object.entries(selectedItems)) {
+                    if (item.quantity > 1) {
+                        productsList.push(`זיכוי: ${name} (-${item.quantity})`);
+                    } else {
+                        productsList.push(`זיכוי: ${name}`);
+                    }
+                }
+                
+                if (customAmount > 0) {
+                    const customItem = customDescription ? `זיכוי: ${customDescription} -₪${customAmount}` : `זיכוי: סכום חופשי -₪${customAmount}`;
+                    productsList.push(customItem);
+                }
+            } else {
+                // מצב רגיל
+                for (const [name, item] of Object.entries(selectedItems)) {
+                    if (item.quantity > 1) {
+                        productsList.push(`${name} (${item.quantity})`);
+                    } else {
+                        productsList.push(name);
+                    }
+                }
+                
+                if (customAmount > 0) {
+                    const customItem = customDescription ? `${customDescription} ₪${customAmount}` : `סכום חופשי ₪${customAmount}`;
+                    productsList.push(customItem);
+                }
+                
+                if (discountAmount > 0) {
+                    const discountItem = discountDescription ? `הנחה: ${discountDescription} -₪${discountAmount}` : `הנחה -₪${discountAmount}`;
+                    productsList.push(discountItem);
                 }
             }
             
-            if (customAmount > 0) {
-                const customItem = customDescription ? `${customDescription} ₪${customAmount}` : `סכום חופשי ₪${customAmount}`;
-                productsList.push(customItem);
+            let total;
+            if (isCreditMode) {
+                total = -(productsTotal + customAmount);
+            } else {
+                total = Math.max(0, productsTotal + customAmount - discountAmount);
             }
-            
-            if (discountAmount > 0) {
-                const discountItem = discountDescription ? `הנחה: ${discountDescription} -₪${discountAmount}` : `הנחה -₪${discountAmount}`;
-                productsList.push(discountItem);
-            }
-            
-            const productsTotal = Object.values(selectedItems).reduce((sum, item) => 
-                sum + (item.price * item.quantity), 0);
-            const total = Math.max(0, productsTotal + customAmount - discountAmount);
             
             const newOrder = {
                 name: customerName,
                 products: productsList.join(', '),
                 total: total,
                 timestamp: new Date().toLocaleString('he-IL'),
-                residenceType: currentResidenceType
+                residenceType: currentResidenceType,
+                isCredit: isCreditMode // הוספת סימון זיכוי
             };
             
             recentOrders.push(newOrder);
@@ -1438,7 +1609,10 @@
                 submitBtn.disabled = false;
                 
                 if (response.success) {
-                    showStatus(`הזמנה נרשמה בהצלחה! ${customerName} - ₪${total}`, 'success');
+                    const statusMsg = isCreditMode ? 
+                        `זיכוי נרשם בהצלחה! ${customerName} - ₪${total}` :
+                        `הזמנה נרשמה בהצלחה! ${customerName} - ₪${total}`;
+                    showStatus(statusMsg, 'success');
                     resetForm();
                 } else {
                     showStatus('שגיאה בשמירת ההזמנה: ' + response.message, 'error');
@@ -1448,7 +1622,7 @@
                 submitBtn.textContent = originalText;
                 submitBtn.disabled = false;
                 
-                showStatus('שגיאה בחிבור לשרת: ' + error.message, 'error');
+                showStatus('שגיאה בחיבור לשרת: ' + error.message, 'error');
             }
             
             updateRecentOrders();
@@ -1462,7 +1636,7 @@
             setTimeout(() => {
                 statusDiv.textContent = '';
                 statusDiv.className = '';
-            }, 3000);
+            }, 5000); // הגדלת הזמן ל-5 שניות להודעות ארוכות
         }
         
         function resetForm() {
@@ -1499,6 +1673,11 @@
             isValidSelection = false;
             validationMsg.style.display = 'none';
             
+            // איפוס מצב זיכוי
+            if (isCreditMode) {
+                toggleCreditMode();
+            }
+            
             document.querySelectorAll('.product-card').forEach(card => {
                 card.classList.remove('selected');
             });
@@ -1513,6 +1692,7 @@
             recentOrders = JSON.parse(localStorage.getItem('recentOrders') || '[]');
             isValidSelection = false;
             currentResidenceType = '';
+            isCreditMode = false;
             
             // הגדרת Autocomplete
             setupAutocomplete();
