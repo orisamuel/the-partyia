@@ -230,6 +230,16 @@
             font-weight: 600;
         }
         
+        /* סטטיסטיקת זיכויים חדשה */
+        .stat-card.credits-card {
+            background: linear-gradient(135deg, #fff5f5, #ffe0e0);
+            border-color: rgba(220, 53, 69, 0.3);
+        }
+        
+        .stat-card.credits-card .stat-number {
+            color: #dc3545;
+        }
+        
         /* גרף */
         .chart-section {
             background: white;
@@ -350,6 +360,12 @@
         
         .product-item {
             margin-bottom: 3px;
+        }
+        
+        /* הבחנה לזיכויים בפירוט */
+        .product-item.credit {
+            color: #dc3545;
+            font-weight: 600;
         }
         
         .quantity-cell {
@@ -564,7 +580,7 @@
                     </div>
                     <div class="stat-card">
                         <span class="stat-number" id="totalQuantity">0</span>
-                        <div class="stat-label">יחידות שנמכרו</div>
+                        <div class="stat-label">יחידות שנמכרו (נטו)</div>
                     </div>
                     <div class="stat-card">
                         <span class="stat-number" id="theoreticalRevenue">₪0</span>
@@ -577,6 +593,10 @@
                     <div class="stat-card">
                         <span class="stat-number negative" id="totalDiscounts">₪0</span>
                         <div class="stat-label">הנחות ומבצעים</div>
+                    </div>
+                    <div class="stat-card credits-card">
+                        <span class="stat-number" id="totalCredits">₪0</span>
+                        <div class="stat-label">סה"כ זיכויים</div>
                     </div>
                     <div class="stat-card">
                         <span class="stat-number" id="totalEvents">0</span>
@@ -606,7 +626,7 @@
                         <thead id="tableHead">
                             <tr>
                                 <th style="width: 300px;">קטגוריית מוצר</th>
-                                <th style="width: 100px;">כמות</th>
+                                <th style="width: 100px;">כמות נטו</th>
                                 <th style="width: 100px;">אחוז</th>
                                 <th style="width: 120px;">הכנסות תיאורטיות</th>
                             </tr>
@@ -640,6 +660,7 @@
         let allProductsList = []; // רשימת כל המוצרים לבחירה
         let salesChart = null;
         let actualTotalRevenue = 0; // הכנסות ממשיות מהגליון הראשי
+        let totalCreditsAmount = 0; // סכום הזיכויים - חדש!
         let currentMode = 'single'; // מצב נוכחי: single, range, analysis
         
         // הגדרות צבעים
@@ -929,16 +950,23 @@
                 if (!orderDate || !dateMap[orderDate]) return;
                 
                 const products = (order.products || '').split(', ');
+                const isCredit = order.orderType === 'זיכוי';
+                
                 products.forEach(productStr => {
                     const product = productStr.trim();
                     
                     if (product.toLowerCase().includes(productName.toLowerCase())) {
                         // חילוץ כמות
-                        const quantityMatch = product.match(/^(.+?)\s*\((\d+)\)$/);
+                        const quantityMatch = product.match(/^(?:זיכוי:\s*)?(.+?)\s*\((-?\d+)\)$/);
                         let quantity = 1;
                         
                         if (quantityMatch) {
                             quantity = parseInt(quantityMatch[2]);
+                        }
+                        
+                        // אם זה זיכוי, הופכים לשלילי
+                        if (isCredit) {
+                            quantity = -Math.abs(quantity);
                         }
                         
                         dateMap[orderDate].quantity += quantity;
@@ -1115,23 +1143,35 @@
             });
         }
         
-        // עיבוד נתוני מוצרים - עם חישוב נכון של הכנסות ממשיות והנחות
+        // עיבוד נתוני מוצרים - עם חישוב נכון של הכנסות ממשיות והנחות + זיכויים
         function processProductsData(orders) {
-            console.log('⚙️ מתחיל עיבוד נתוני מוצרים עם חישוב נכון של הכנסות...');
+            console.log('⚙️ מתחיל עיבוד נתוני מוצרים עם טיפול בזיכויים...');
             
             const productCounts = {};
             const productDetails = {};
+            const creditDetails = {}; // פירוט זיכויים לכל מוצר - חדש!
             
-            // חישוב הכנסות ממשיות מעמודת הסכום בגליון
-            actualTotalRevenue = orders.reduce((sum, order) => {
+            // חישוב הכנסות ממשיות וזיכויים
+            actualTotalRevenue = 0;
+            totalCreditsAmount = 0;
+            
+            orders.forEach(order => {
                 const total = parseInt(order.total) || 0;
-                return sum + total;
-            }, 0);
+                const isCredit = order.orderType === 'זיכוי';
+                
+                if (isCredit) {
+                    totalCreditsAmount += Math.abs(total);
+                } else {
+                    actualTotalRevenue += total;
+                }
+            });
             
-            console.log('💰 סה"כ הכנסות ממשיות מהגליון:', actualTotalRevenue, '₪');
+            console.log('💰 סה"כ הכנסות ממשיות:', actualTotalRevenue, '₪');
+            console.log('💳 סה"כ זיכויים:', totalCreditsAmount, '₪');
             
             orders.forEach(order => {
                 const products = (order.products || '').split(', ');
+                const isCredit = order.orderType === 'זיכוי';
                 
                 products.forEach(productStr => {
                     const product = productStr.trim();
@@ -1142,15 +1182,18 @@
                         return;
                     }
                     
+                    // ניקוי "זיכוי:" מתחילת השם
+                    let cleanProduct = product.replace(/^זיכוי:\s*/i, '');
+                    
                     // חילוץ כמות
-                    const quantityMatch = product.match(/^(.+?)\s*\((\d+)\)$/);
+                    const quantityMatch = cleanProduct.match(/^(.+?)\s*\((-?\d+)\)$/);
                     let productName, quantity;
                     
                     if (quantityMatch) {
                         productName = quantityMatch[1].trim();
                         quantity = parseInt(quantityMatch[2]);
                     } else {
-                        productName = product;
+                        productName = cleanProduct;
                         quantity = 1;
                     }
                     
@@ -1158,33 +1201,49 @@
                     const groupInfo = getProductGroup(productName);
                     const groupName = groupInfo.name;
                     
-                    // עדכון כמויות כלליות
+                    // אם זה זיכוי - כמות שלילית
+                    if (isCredit) {
+                        quantity = -Math.abs(quantity);
+                        
+                        // שמירת פירוט זיכויים
+                        if (!creditDetails[groupName]) {
+                            creditDetails[groupName] = {};
+                        }
+                        creditDetails[groupName][productName] = (creditDetails[groupName][productName] || 0) + Math.abs(quantity);
+                    }
+                    
+                    // עדכון כמויות כלליות (חיובי או שלילי)
                     productCounts[groupName] = (productCounts[groupName] || 0) + quantity;
                     
-                    // עדכון פירוט
-                    if (!productDetails[groupName]) {
-                        productDetails[groupName] = {};
+                    // עדכון פירוט (רק מכירות רגילות)
+                    if (!isCredit) {
+                        if (!productDetails[groupName]) {
+                            productDetails[groupName] = {};
+                        }
+                        productDetails[groupName][productName] = (productDetails[groupName][productName] || 0) + quantity;
                     }
-                    productDetails[groupName][productName] = (productDetails[groupName][productName] || 0) + quantity;
                 });
             });
             
             // המרה למערך מסודר עם הכנסות תיאורטיות
-            const productsArray = Object.entries(productCounts).map(([groupName, totalCount]) => {
-                const groupInfo = getProductGroupByName(groupName);
-                const theoreticalRevenue = totalCount * groupInfo.price;
-                
-                return {
-                    name: groupName,
-                    quantity: totalCount,
-                    theoreticalRevenue: theoreticalRevenue,
-                    emoji: groupInfo.emoji,
-                    price: groupInfo.price,
-                    details: productDetails[groupName] || {}
-                };
-            });
+            const productsArray = Object.entries(productCounts)
+                .filter(([groupName, totalCount]) => totalCount !== 0) // מסנן מוצרים עם כמות 0
+                .map(([groupName, totalCount]) => {
+                    const groupInfo = getProductGroupByName(groupName);
+                    const theoreticalRevenue = Math.max(0, totalCount * groupInfo.price); // רק על כמות חיובית
+                    
+                    return {
+                        name: groupName,
+                        quantity: totalCount, // יכול להיות שלילי אם יותר זיכויים ממכירות
+                        theoreticalRevenue: theoreticalRevenue,
+                        emoji: groupInfo.emoji,
+                        price: groupInfo.price,
+                        details: productDetails[groupName] || {},
+                        creditDetails: creditDetails[groupName] || {} // פירוט זיכויים - חדש!
+                    };
+                });
             
-            // מיון לפי כמות (יורד)
+            // מיון לפי כמות (יורד) - כמות נטו
             return productsArray.sort((a, b) => b.quantity - a.quantity);
         }
         
@@ -1295,7 +1354,7 @@
             updateTable();
             
             // עדכון כותרות
-            document.getElementById('chartTitle').textContent = 'התפלגות מכירות';
+            document.getElementById('chartTitle').textContent = 'התפלגות מכירות (נטו)';
             document.getElementById('tableSection').style.display = 'block';
             
             document.getElementById('resultsSection').style.display = 'block';
@@ -1320,13 +1379,13 @@
             document.getElementById('resultsSection').style.display = 'block';
         }
         
-        // עדכון סטטיסטיקות - עם חישוב נכון של הנחות
+        // עדכון סטטיסטיקות - עם תמיכה בזיכויים
         function updateStatistics(orders, isSingleMode) {
             const totalProducts = currentData.length;
-            const totalQuantity = currentData.reduce((sum, item) => sum + item.quantity, 0);
+            const totalQuantity = currentData.reduce((sum, item) => sum + item.quantity, 0); // יכול להיות שלילי!
             const theoreticalRevenue = currentData.reduce((sum, item) => sum + item.theoreticalRevenue, 0);
-            const totalDiscounts = Math.max(0, theoreticalRevenue - actualTotalRevenue);
-            const topProduct = currentData.length > 0 ? currentData[0].name : '-';
+            const totalDiscounts = Math.max(0, theoreticalRevenue - actualTotalRevenue - totalCreditsAmount);
+            const topProduct = currentData.length > 0 && currentData[0].quantity > 0 ? currentData[0].name : '-';
             const totalEvents = isSingleMode ? 1 : countUniqueEvents(orders);
             
             document.getElementById('totalProducts').textContent = totalProducts;
@@ -1334,6 +1393,7 @@
             document.getElementById('theoreticalRevenue').textContent = `₪${theoreticalRevenue.toLocaleString()}`;
             document.getElementById('actualRevenue').textContent = `₪${actualTotalRevenue.toLocaleString()}`;
             document.getElementById('totalDiscounts').textContent = `₪${totalDiscounts.toLocaleString()}`;
+            document.getElementById('totalCredits').textContent = `₪${totalCreditsAmount.toLocaleString()}`; // חדש!
             document.getElementById('topProduct').textContent = topProduct;
             document.getElementById('totalEvents').textContent = totalEvents;
         }
@@ -1352,15 +1412,27 @@
                 return;
             }
             
-            const totalQuantity = currentData.reduce((sum, item) => sum + item.quantity, 0);
+            // מסנן רק מוצרים עם כמות חיובית לגרף
+            const positiveData = currentData.filter(item => item.quantity > 0);
+            
+            if (positiveData.length === 0) {
+                // אין מכירות חיוביות להציג
+                ctx.font = '20px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#666';
+                ctx.fillText('אין מכירות להצגה (רק זיכויים)', ctx.canvas.width / 2, ctx.canvas.height / 2);
+                return;
+            }
+            
+            const totalQuantity = positiveData.reduce((sum, item) => sum + item.quantity, 0);
             
             salesChart = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: currentData.map(item => item.name),
+                    labels: positiveData.map(item => item.name),
                     datasets: [{
-                        data: currentData.map(item => item.quantity),
-                        backgroundColor: COLORS.slice(0, currentData.length),
+                        data: positiveData.map(item => item.quantity),
+                        backgroundColor: COLORS.slice(0, positiveData.length),
                         borderWidth: 3,
                         borderColor: '#fff'
                     }]
@@ -1436,7 +1508,7 @@
                 data: {
                     labels: dateData.map(item => item.dateFormatted),
                     datasets: [{
-                        label: 'כמות נמכרה',
+                        label: 'כמות נמכרה (נטו)',
                         data: dateData.map(item => item.quantity),
                         borderColor: '#E67E22',
                         backgroundColor: 'rgba(230, 126, 34, 0.1)',
@@ -1480,7 +1552,7 @@
                             beginAtZero: true,
                             title: {
                                 display: true,
-                                text: 'כמות נמכרה'
+                                text: 'כמות נמכרה (נטו)'
                             }
                         },
                         x: {
@@ -1499,7 +1571,7 @@
             console.log('✅ גרף ניתוח מוצר נוצר');
         }
         
-        // עדכון טבלה עם פירוט
+        // עדכון טבלה עם פירוט וזיכויים
         function updateTable() {
             console.log('📋 מעדכן טבלה...');
             
@@ -1516,15 +1588,29 @@
                 return;
             }
             
-            const totalQuantity = currentData.reduce((sum, item) => sum + item.quantity, 0);
+            const totalPositiveQuantity = currentData.reduce((sum, item) => sum + Math.max(0, item.quantity), 0);
             
             tbody.innerHTML = currentData.map(item => {
-                const percentage = totalQuantity > 0 ? ((item.quantity / totalQuantity) * 100).toFixed(1) : 0;
+                const percentage = totalPositiveQuantity > 0 && item.quantity > 0 ? 
+                    ((item.quantity / totalPositiveQuantity) * 100).toFixed(1) : 0;
                 
-                // יצירת פירוט פנימי
-                const detailsHtml = Object.entries(item.details)
+                // יצירת פירוט מכירות
+                const salesDetailsHtml = Object.entries(item.details)
                     .map(([productName, count]) => `<div class="product-item">• ${productName}: ${count} יחידות</div>`)
                     .join('');
+                
+                // יצירת פירוט זיכויים
+                const creditDetailsHtml = Object.entries(item.creditDetails)
+                    .map(([productName, count]) => `<div class="product-item credit">• זיכוי: ${productName}: -${count} יחידות</div>`)
+                    .join('');
+                
+                const allDetailsHtml = salesDetailsHtml + creditDetailsHtml;
+                
+                // צביעת כמות שלילית
+                const quantityClass = item.quantity < 0 ? 'negative' : '';
+                const quantityDisplay = item.quantity < 0 ? 
+                    `<span style="color: #dc3545;">${item.quantity}</span>` :
+                    item.quantity;
                 
                 return `
                     <tr>
@@ -1533,9 +1619,9 @@
                                 <span class="product-emoji">${item.emoji}</span>
                                 ${item.name}
                             </div>
-                            ${detailsHtml ? `<div class="product-details">${detailsHtml}</div>` : ''}
+                            ${allDetailsHtml ? `<div class="product-details">${allDetailsHtml}</div>` : ''}
                         </td>
-                        <td class="quantity-cell">${item.quantity}</td>
+                        <td class="quantity-cell ${quantityClass}">${quantityDisplay}</td>
                         <td class="percentage-cell">${percentage}%</td>
                         <td class="revenue-cell">₪${item.theoreticalRevenue.toLocaleString()}</td>
                     </tr>
@@ -1568,27 +1654,36 @@
                 fileName = `פרתיה_ניתוח_${productName}_${fromDate}_עד_${toDate}.xlsx`;
             } else {
                 // יצוא נתוני מוצרים רגיל
-                const totalQuantity = currentData.reduce((sum, item) => sum + item.quantity, 0);
+                const totalPositiveQuantity = currentData.reduce((sum, item) => sum + Math.max(0, item.quantity), 0);
                 const theoreticalRevenue = currentData.reduce((sum, item) => sum + item.theoreticalRevenue, 0);
-                const totalDiscounts = Math.max(0, theoreticalRevenue - actualTotalRevenue);
+                const totalDiscounts = Math.max(0, theoreticalRevenue - actualTotalRevenue - totalCreditsAmount);
                 
                 const summaryData = [
                     { 'סטטיסטיקה': 'הכנסה תיאורטית', 'ערך': `₪${theoreticalRevenue.toLocaleString()}` },
                     { 'סטטיסטיקה': 'הכנסות בפועל', 'ערך': `₪${actualTotalRevenue.toLocaleString()}` },
+                    { 'סטטיסטיקה': 'סה"כ זיכויים', 'ערך': `₪${totalCreditsAmount.toLocaleString()}` },
                     { 'סטטיסטיקה': 'הנחות ומבצעים', 'ערך': `₪${totalDiscounts.toLocaleString()}` },
-                    { 'סטטיסטיקה': 'יחידות שנמכרו', 'ערך': totalQuantity.toLocaleString() }
+                    { 'סטטיסטיקה': 'יחידות שנמכרו (נטו)', 'ערך': totalPositiveQuantity.toLocaleString() }
                 ];
                 
                 exportData = currentData.map(item => {
-                    const percentage = totalQuantity > 0 ? ((item.quantity / totalQuantity) * 100).toFixed(1) : 0;
-                    const details = Object.entries(item.details)
+                    const percentage = totalPositiveQuantity > 0 && item.quantity > 0 ? 
+                        ((item.quantity / totalPositiveQuantity) * 100).toFixed(1) : 0;
+                    
+                    const salesDetails = Object.entries(item.details)
                         .map(([name, count]) => `${name}: ${count}`)
                         .join('; ');
                     
+                    const creditDetails = Object.entries(item.creditDetails)
+                        .map(([name, count]) => `זיכוי ${name}: -${count}`)
+                        .join('; ');
+                    
+                    const allDetails = [salesDetails, creditDetails].filter(d => d).join('; ');
+                    
                     return {
                         'קטגוריה': item.name,
-                        'פירוט': details || item.name,
-                        'כמות': item.quantity,
+                        'פירוט': allDetails || item.name,
+                        'כמות נטו': item.quantity,
                         'אחוז': `${percentage}%`,
                         'הכנסות תיאורטיות': item.theoreticalRevenue,
                         'מחיר ממוצע': item.price
