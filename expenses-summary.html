@@ -263,6 +263,16 @@
             margin-bottom: 5px;
         }
         
+        /* סטטיסטיקת זיכויים חדשה */
+        .stat-card.credits-card {
+            background: linear-gradient(135deg, #fff5f5, #ffe0e0);
+            border-color: rgba(220, 53, 69, 0.3);
+        }
+        
+        .stat-card.credits-card .stat-number {
+            color: #dc3545;
+        }
+        
         .stat-label {
             color: #6c757d;
             font-size: 14px;
@@ -330,10 +340,38 @@
             display: none;
         }
         
+        /* עיצוב לזיכויים */
+        .order-type-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-right: 5px;
+        }
+        
+        .order-type-badge.credit {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+        }
+        
+        .order-type-badge.regular {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+        }
+        
         .total-amount {
             font-weight: bold;
             color: #E67E22;
             font-size: 16px;
+        }
+        
+        .total-amount.negative {
+            color: #dc3545;
+        }
+        
+        .total-amount.positive {
+            color: #28a745;
         }
         
         .loading {
@@ -506,7 +544,15 @@
                     </div>
                     <div class="stat-card">
                         <div class="stat-number" id="totalRevenue">₪0</div>
-                        <div class="stat-label">הכנסות כולל</div>
+                        <div class="stat-label">סה"כ חיובים</div>
+                    </div>
+                    <div class="stat-card credits-card">
+                        <div class="stat-number" id="totalCredits">₪0</div>
+                        <div class="stat-label">סה"כ זיכויים</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="netTotal">₪0</div>
+                        <div class="stat-label">סה"כ נטו</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-number" id="averageSpending">₪0</div>
@@ -532,6 +578,7 @@
                                 <th style="width: 180px;">שם התושב</th>
                                 <th style="width: 120px;">תאריך אירוע</th>
                                 <th style="width: 250px;">פירוט הזמנות</th>
+                                <th style="width: 100px;">סוג</th>
                                 <th style="width: 100px;">סכום</th>
                             </tr>
                         </thead>
@@ -879,8 +926,7 @@
             return filtered;
         }
         
-        // עיבוד נתוני ההזמנות לפי תאריך - כל תושב+תאריך = שורה נפרדת
-        // עם טיפול בהזמנות לילה (חצות-6:00 מוקצות ליום הקודם)
+        // עיבוד נתוני ההזמנות לפי תאריך - עם תמיכה בזיכויים
         function processOrdersDataByDate(orders) {
             const residentsDataByDate = {};
             
@@ -889,12 +935,13 @@
                 const residenceType = order.residenceType || '';
                 const products = order.products || '';
                 const total = parseInt(order.total) || 0;
+                const orderType = order.orderType || 'רגילה'; // חדש!
                 
                 // קביעת התאריך הנכון (עם טיפול בהזמנות לילה)
                 const correctDate = getCorrectEventDate(order.date, order.time);
                 
-                // מפתח ייחודי לכל תושב+תאריך
-                const key = `${name}|${correctDate}`;
+                // מפתח ייחודי לכל תושב+תאריך+סוג
+                const key = `${name}|${correctDate}|${orderType}`;
                 
                 if (!residentsDataByDate[key]) {
                     residentsDataByDate[key] = {
@@ -902,6 +949,7 @@
                         residenceType: residenceType,
                         eventDate: correctDate,
                         eventDateFormatted: formatDateNice(correctDate),
+                        orderType: orderType, // חדש!
                         orders: [],
                         totalAmount: 0
                     };
@@ -919,7 +967,14 @@
                 if (a.name !== b.name) {
                     return a.name.localeCompare(b.name, 'he');
                 }
-                return a.eventDate.localeCompare(b.eventDate);
+                if (a.eventDate !== b.eventDate) {
+                    return a.eventDate.localeCompare(b.eventDate);
+                }
+                // מיון זיכויים אחרי הזמנות רגילות
+                if (a.orderType !== b.orderType) {
+                    return a.orderType === 'זיכוי' ? 1 : -1;
+                }
+                return 0;
             });
         }
         
@@ -1022,20 +1077,32 @@
             document.getElementById('resultsSection').style.display = 'block';
         }
         
-        // עדכון סטטיסטיקות - מתוקן לפי הפילטר החדש
+        // עדכון סטטיסטיקות - עם תמיכה בזיכויים
         function updateStatistics(filteredData) {
             const uniqueResidents = new Set(filteredData.map(item => item.name)).size;
             const totalOrders = filteredData.reduce((sum, item) => sum + item.orders.length, 0);
-            const totalRevenue = filteredData.reduce((sum, item) => sum + item.totalAmount, 0);
-            const averageSpending = uniqueResidents > 0 ? Math.round(totalRevenue / uniqueResidents) : 0;
+            
+            // חישוב נפרד לחיובים וזיכויים
+            const totalCharges = filteredData
+                .filter(item => item.orderType !== 'זיכוי')
+                .reduce((sum, item) => sum + item.totalAmount, 0);
+            
+            const totalCredits = Math.abs(filteredData
+                .filter(item => item.orderType === 'זיכוי')
+                .reduce((sum, item) => sum + item.totalAmount, 0));
+            
+            const netTotal = totalCharges - totalCredits;
+            const averageSpending = uniqueResidents > 0 ? Math.round(netTotal / uniqueResidents) : 0;
             
             document.getElementById('totalResidents').textContent = uniqueResidents;
             document.getElementById('totalOrders').textContent = totalOrders;
-            document.getElementById('totalRevenue').textContent = `₪${totalRevenue}`;
+            document.getElementById('totalRevenue').textContent = `₪${totalCharges}`;
+            document.getElementById('totalCredits').textContent = `₪${totalCredits}`;
+            document.getElementById('netTotal').textContent = `₪${netTotal}`;
             document.getElementById('averageSpending').textContent = `₪${averageSpending}`;
         }
         
-        // עדכון טבלה - מתוקן
+        // עדכון טבלה - עם תמיכה בזיכויים
         function updateTable(data) {
             const tbody = document.getElementById('expensesTableBody');
             const residenceFilter = document.getElementById('residenceFilter').value;
@@ -1050,7 +1117,7 @@
             if (filteredData.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="4" class="no-data">
+                        <td colspan="5" class="no-data">
                             אין נתונים להצגה עבור הפילטרים שנבחרו
                         </td>
                     </tr>
@@ -1062,6 +1129,19 @@
                 const ordersSummary = createOrdersSummary(item.orders);
                 const residenceDisplay = item.residenceType ? 
                     `<div class="residence-type">(${item.residenceType})</div>` : '';
+                
+                // עיצוב סוג ההזמנה
+                const orderTypeBadge = item.orderType === 'זיכוי' ? 
+                    '<span class="order-type-badge credit">זיכוי</span>' :
+                    '<span class="order-type-badge regular">רגילה</span>';
+                
+                // עיצוב הסכום לפי סוג
+                let amountClass = 'total-amount';
+                if (item.orderType === 'זיכוי') {
+                    amountClass += ' negative';
+                } else if (item.totalAmount > 0) {
+                    amountClass += ' positive';
+                }
                 
                 return `
                     <tr>
@@ -1077,7 +1157,8 @@
                                 ${ordersSummary}
                             </div>
                         </td>
-                        <td class="total-amount">₪${item.totalAmount}</td>
+                        <td>${orderTypeBadge}</td>
+                        <td class="${amountClass}">₪${item.totalAmount}</td>
                     </tr>
                 `;
             }).join('');
@@ -1135,7 +1216,7 @@
             }
         }
         
-        // יצוא לאקסל - מתוקן עם סדר נכון, תיקון סוג התושב ו-RTL ותמיכה בשני מצבים
+        // יצוא לאקסל - עם תמיכה בזיכויים
         function exportToExcel() {
             if (currentData.length === 0) {
                 alert('אין נתונים ליצוא');
@@ -1162,6 +1243,7 @@
                     return {
                         'שם התושב': item.name,
                         'תאריך': item.eventDateFormatted,
+                        'סוג הזמנה': item.orderType,
                         'סכום לחיוב': `₪${item.totalAmount}`,
                         'פירוט הזמנות': createOrdersSummary(item.orders),
                         'סוג תושב': residenceTypeDisplay
@@ -1179,6 +1261,7 @@
             ws['!cols'] = [
                 { width: 25 }, // שם התושב
                 { width: 15 }, // תאריך
+                { width: 12 }, // סוג הזמנה
                 { width: 12 }, // סכום לחיוב
                 { width: 40 }, // פירוט הזמנות
                 { width: 30 }  // סוג תושב
