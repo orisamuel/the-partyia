@@ -6,7 +6,7 @@
     <title>ערב מתנדבים בפרתיה · 12.7.26</title>
     <link rel="icon" href="logo.png" type="image/png">
     <meta property="og:title" content="ערב מתנדבים בפרתיה 🦌">
-    <meta property="og:description" content="12.7.26 · באים לשתות, ליהנות, להכיר וללמוד. הכניסה חופשית!">
+    <meta property="og:description" content="12.7.26 בשעה 21:00 · באים לשתות, ליהנות, להכיר וללמוד. הכניסה חופשית!">
     <meta property="og:image" content="logo.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -101,14 +101,6 @@
             margin-bottom: 26px;
         }
 
-        .save-the-date {
-            font-size: 15px;
-            font-weight: 700;
-            letter-spacing: 6px;
-            color: var(--cream);
-            opacity: .85;
-        }
-
         .big-date {
             font-size: clamp(64px, 18vw, 96px);
             font-weight: 900;
@@ -118,11 +110,38 @@
             direction: ltr;
         }
 
+        .event-time {
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--cream);
+            letter-spacing: 2px;
+            margin-top: 2px;
+        }
+
         h1 {
             font-size: clamp(26px, 7vw, 34px);
             font-weight: 900;
-            margin-top: 4px;
+            margin-top: 10px;
         }
+
+        .cta-btn {
+            display: inline-block;
+            margin-top: 22px;
+            padding: 15px 44px;
+            border: none;
+            border-radius: 16px;
+            background: linear-gradient(135deg, var(--orange) 0%, var(--orange-deep) 100%);
+            color: #fff;
+            font-family: inherit;
+            font-size: 19px;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: 0 10px 26px rgba(211, 84, 0, 0.4);
+            transition: transform .12s, box-shadow .2s;
+        }
+
+        .cta-btn:hover { transform: translateY(-2px); box-shadow: 0 14px 32px rgba(211, 84, 0, 0.5); }
+        .cta-btn:active { transform: translateY(0); }
 
         .sub {
             font-size: 17px;
@@ -183,6 +202,41 @@
         }
 
         .free-line b { color: var(--orange); font-weight: 700; }
+
+        .free-line a, .footer a {
+            color: var(--orange);
+            font-weight: 700;
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }
+
+        /* ===== כפתורי קישורים ===== */
+        .links-row {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 30px;
+        }
+
+        .ghost-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            border: 1.5px solid rgba(232, 135, 59, 0.55);
+            border-radius: 16px;
+            background: rgba(232, 135, 59, 0.08);
+            color: var(--orange);
+            font-family: inherit;
+            font-size: 16.5px;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+            transition: background .15s, transform .12s;
+        }
+
+        .ghost-btn:hover { background: rgba(232, 135, 59, 0.2); transform: translateY(-1px); }
+        .ghost-btn:active { transform: translateY(0); }
 
         /* ===== טופס ===== */
         .form-card {
@@ -381,27 +435,31 @@
         <img src="logo.png" alt="הפרתיה" class="logo">
         <div class="brand">NOFEY PARTYING</div>
 
-        <div class="save-the-date">SAVE THE DATE</div>
         <div class="big-date">12.7.26</div>
+        <div class="event-time">🕘 21:00</div>
         <h1>ערב מתנדבים בפרתיה 🦌</h1>
-        <div class="sub">(בואו לשתות, ליהנות וגם להכיר וללמוד)</div>
+        <div class="sub">(באים לשתות, ליהנות, להכיר וללמוד — בערך בסדר הזה)</div>
+
+        <button type="button" class="cta-btn" onclick="scrollToForm()">תרשמו אותי 🍻</button>
 
         <p class="intro">
-            אחרי קצת יותר משנה שהפרתיה באוויר, הגיע הזמן לעצור רגע,
-            להרים כוסית ולהגיד <strong>תודה ענקית</strong> לכל מי שמתנדב —
-            וגם למי שעוד לא יצא לו, אבל הלב כבר שם.
+            קצת יותר משנה שהפרתיה באוויר,<br>
+            ומגיע לעצור רגע, להרים כוסית,<br>
+            ולהגיד <strong>תודה ענקית</strong> לכל מי שמתנדב.<br>
+            עוד לא יצא לך להתנדב, אבל את/ה בעניין<br>
+            ורוצה להבין מה זה בכלל אומר? מושלם, זה בדיוק בשבילך.
         </p>
 
         <div class="cards">
             <div class="card">
                 <span class="emoji">🍸</span>
                 <h3>סדנת קוקטיילים</h3>
-                <p>תלמדו להכין קוקטייל שמשאיר את כולם פעורי פה</p>
+                <p>תלמדו להכין קוקטייל שגורם לאנשים לשאול "רגע, אתם הכנתם את זה?!"</p>
             </div>
             <div class="card">
                 <span class="emoji">🛠️</span>
                 <h3>סיור עמדות</h3>
-                <p>מה זה בעצם אומר להתנדב בערב של הפרתיה</p>
+                <p>מה זה בעצם אומר להתנדב בערב של הפרתיה (ספוילר: כיף)</p>
             </div>
             <div class="card">
                 <span class="emoji">🙏</span>
@@ -416,13 +474,13 @@
         </div>
 
         <p class="free-line">
-            יש לכם חברים שעדיין לא בקבוצת המתנדבים אבל בעניין?
-            זה בדיוק הזמן להביא אותם. <b>הכניסה חופשית 🧡</b>
+            יש לכם חברים שעדיין לא ב<a href="https://chat.whatsapp.com/DBGKCCI6bTmHxv0fLobNqA" target="_blank" rel="noopener">קבוצת המתנדבים</a> אבל בעניין?
+            תגררו אותם. הם יגידו תודה. <b>הכניסה חופשית 🧡</b>
         </p>
 
         <form class="form-card" id="regForm">
-            <h2>שריינו לנו אתכם 📝</h2>
-            <p class="form-sub">שתי שאלות וסיימנו. מבטיחים.</p>
+            <h2>תרשמו אותי ✍️</h2>
+            <p class="form-sub">ייקח לך פחות זמן מלמזוג בירה</p>
 
             <label for="nameInput">איך קוראים לך?</label>
             <input type="text" id="nameInput" placeholder="שם מלא (כדי שנדע למי להגיד תודה)" autocomplete="name" required>
@@ -435,7 +493,7 @@
             </div>
             <p class="stepper-hint">כולל אתכם. כן, גם החברים שגררתם.</p>
 
-            <button type="submit" class="submit-btn" id="submitBtn">שריינו לי מקום 🍻</button>
+            <button type="submit" class="submit-btn" id="submitBtn">יאללה, שריינו לי מקום 🍻</button>
             <div class="error-msg" id="errorMsg"></div>
         </form>
 
@@ -446,9 +504,15 @@
             <p class="motto">מקום טוב · אנשים טובים · עשייה טובה ♡</p>
         </div>
 
+        <div class="links-row">
+            <button type="button" class="ghost-btn" id="shareBtn" onclick="sharePage()">מכירים עוד מישהו ששווה שיבוא? שתפו 📤</button>
+            <a class="ghost-btn" href="https://chat.whatsapp.com/DBGKCCI6bTmHxv0fLobNqA" target="_blank" rel="noopener">לקבוצת המתנדבים בוואטסאפ 💬</a>
+            <a class="ghost-btn" href="https://bit.ly/whatsappub" target="_blank" rel="noopener">לקבוצת העדכונים של הפרתיה 📢</a>
+        </div>
+
         <div class="footer">
-            הפרתיה · ערב מתנדבים · 12.7.26<br>
-            שאלות? תפסו אותנו בקבוצה 💬
+            הפרתיה · ערב מתנדבים · 12.7.26 · 21:00<br>
+            שאלות? תפסו אותנו ב<a href="https://chat.whatsapp.com/DBGKCCI6bTmHxv0fLobNqA" target="_blank" rel="noopener">קבוצה</a> 💬
         </div>
     </div>
 
@@ -534,6 +598,37 @@
             const div = document.createElement('div');
             div.textContent = str;
             return div.innerHTML;
+        }
+
+        function scrollToForm() {
+            const target = form.style.display === 'none'
+                ? document.getElementById('successCard')
+                : form;
+            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            if (target === form) {
+                setTimeout(() => document.getElementById('nameInput').focus({ preventScroll: true }), 500);
+            }
+        }
+
+        async function sharePage() {
+            const shareBtn = document.getElementById('shareBtn');
+            const shareData = {
+                title: 'ערב מתנדבים בפרתיה 🦌',
+                text: 'ערב מתנדבים בפרתיה! 12.7.26 בשעה 21:00 — באים לשתות, ליהנות, להכיר וללמוד. הכניסה חופשית 🧡',
+                url: window.location.href
+            };
+            try {
+                if (navigator.share) {
+                    await navigator.share(shareData);
+                } else {
+                    await navigator.clipboard.writeText(shareData.text + '\n' + shareData.url);
+                    const original = shareBtn.textContent;
+                    shareBtn.textContent = 'הקישור הועתק! עכשיו תורכם 😉';
+                    setTimeout(() => { shareBtn.textContent = original; }, 2500);
+                }
+            } catch (err) {
+                // המשתמש ביטל את השיתוף — לא צריך לעשות כלום
+            }
         }
     </script>
 </body>
