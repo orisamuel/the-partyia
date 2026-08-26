@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מסיבת סוף הקיץ בפרתיה · 3.9</title>
+    <link rel="icon" href="logo.png" type="image/png">
+    <meta property="og:title" content="מסיבת סוף הקיץ של הפרתיה 🌅🦌">
+    <meta property="og:description" content="יום חמישי 3.9 · 20:30 · DJ NIV · בר מיוחד · כרטיסים חינם ל־50 הנרשמים הראשונים 🎟️">
+    <meta property="og:image" content="logo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --night-1: #0e1a2e;
+            --night-2: #16263f;
+            --night-3: #1d3050;
+            --orange: #E8873B;
+            --orange-deep: #D35400;
+            --cream: #F2E8D5;
+            --cream-dim: #cfc4ad;
+        }
+
+        body {
+            font-family: 'Heebo', 'Segoe UI', Tahoma, sans-serif;
+            background: linear-gradient(180deg, var(--night-1) 0%, var(--night-2) 55%, var(--night-3) 100%);
+            min-height: 100dvh;
+            color: var(--cream);
+            overflow-x: hidden;
+        }
+
+        /* ===== נורות תלויות ===== */
+        .lights {
+            display: flex;
+            justify-content: space-between;
+            max-width: 560px;
+            margin: 0 auto;
+            padding: 14px 18px 0;
+        }
+
+        .bulb {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ffd98a;
+            box-shadow: 0 0 12px 3px rgba(255, 200, 100, 0.55);
+            animation: flicker 3.2s ease-in-out infinite;
+            position: relative;
+        }
+
+        .bulb::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            right: 3px;
+            width: 3px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 2px;
+        }
+
+        .bulb:nth-child(odd) { transform: translateY(9px); }
+        .bulb:nth-child(2n) { animation-delay: .7s; }
+        .bulb:nth-child(3n) { animation-delay: 1.4s; }
+        .bulb:nth-child(4n) { animation-delay: 2.1s; }
+
+        @keyframes flicker {
+            0%, 100% { opacity: 1; box-shadow: 0 0 12px 3px rgba(255, 200, 100, 0.55); }
+            50% { opacity: .75; box-shadow: 0 0 7px 2px rgba(255, 200, 100, 0.35); }
+        }
+
+        /* ===== מבנה ===== */
+        .wrap {
+            max-width: 560px;
+            margin: 0 auto;
+            padding: 22px 20px 48px;
+            text-align: center;
+        }
+
+        .logo {
+            width: 92px;
+            height: 92px;
+            border-radius: 50%;
+            object-fit: cover;
+            box-shadow: 0 0 0 4px rgba(232, 135, 59, 0.35), 0 14px 34px rgba(0, 0, 0, 0.45);
+            margin-bottom: 6px;
+        }
+
+        .brand {
+            font-size: 14px;
+            letter-spacing: 3px;
+            color: var(--orange);
+            font-weight: 500;
+            margin-bottom: 18px;
+        }
+
+        .page-title {
+            font-size: clamp(21px, 6vw, 26px);
+            font-weight: 900;
+        }
+
+        .page-date {
+            font-size: 15.5px;
+            font-weight: 700;
+            color: var(--cream-dim);
+            margin-top: 4px;
+            letter-spacing: 1px;
+        }
+
+        /* ===== שלבים ===== */
+        .stage { display: none; }
+        .stage.show { display: block; animation: fadeUp .5s ease both; }
+
+        @keyframes fadeUp {
+            0% { opacity: 0; transform: translateY(14px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== הדרמה ===== */
+        .drama-card {
+            margin-top: 26px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(232, 135, 59, 0.35);
+            border-radius: 22px;
+            padding: 46px 24px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+            min-height: 290px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .drama-inner {
+            width: 100%;
+            animation: pop .45s cubic-bezier(.2, 1.4, .4, 1) both;
+        }
+
+        @keyframes pop {
+            0% { transform: scale(.85); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .drama-emoji {
+            font-size: 54px;
+            display: block;
+            margin-bottom: 16px;
+        }
+
+        .drama-title {
+            font-size: clamp(22px, 6.2vw, 28px);
+            font-weight: 900;
+            line-height: 1.4;
+        }
+
+        .drama-title .accent { color: var(--orange); }
+
+        .drama-sub {
+            margin-top: 10px;
+            font-size: 16px;
+            line-height: 1.7;
+            color: var(--cream-dim);
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            margin: 22px auto 0;
+            border: 4px solid rgba(232, 135, 59, 0.2);
+            border-top-color: var(--orange);
+            border-radius: 50%;
+            animation: spin .9s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ===== מד הכרטיסים ===== */
+        .meter-wrap { margin-top: 26px; }
+
+        .meter-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin: 0 2px 8px;
+            font-size: 14px;
+            color: var(--cream-dim);
+        }
+
+        .meter-label b {
+            color: var(--orange);
+            font-size: 19px;
+            font-weight: 900;
+        }
+
+        .meter {
+            height: 14px;
+            border-radius: 999px;
+            background: rgba(14, 26, 46, 0.7);
+            border: 1px solid rgba(242, 232, 213, 0.15);
+            overflow: hidden;
+        }
+
+        .meter-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, var(--orange-deep), var(--orange));
+            box-shadow: 0 0 14px rgba(232, 135, 59, 0.55);
+        }
+
+        /* ===== הגמר ===== */
+        .final-title {
+            font-size: clamp(30px, 8.4vw, 40px);
+            font-weight: 900;
+            line-height: 1.25;
+            margin-top: 26px;
+            background: linear-gradient(120deg, #ffd98a, var(--orange), #ffd98a);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shine 3s linear infinite;
+        }
+
+        @keyframes shine {
+            to { background-position: -200% center; }
+        }
+
+        .final-punch {
+            font-size: clamp(19px, 5.4vw, 23px);
+            font-weight: 700;
+            margin-top: 12px;
+        }
+
+        .final-note {
+            font-size: 16.5px;
+            color: var(--cream-dim);
+            margin-top: 18px;
+            line-height: 1.7;
+        }
+
+        /* ===== הכרטיס ===== */
+        .ticket {
+            position: relative;
+            margin: 26px 0 8px;
+            background: linear-gradient(160deg, rgba(232, 135, 59, 0.16), rgba(255, 255, 255, 0.05));
+            border: 1.5px dashed rgba(232, 135, 59, 0.65);
+            border-radius: 20px;
+            padding: 26px 22px 22px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+        }
+
+        .ticket::before, .ticket::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: var(--night-2);
+            border: 1.5px dashed rgba(232, 135, 59, 0.65);
+            transform: translateY(-50%);
+        }
+
+        .ticket::before { right: -14px; }
+        .ticket::after { left: -14px; }
+
+        .ticket-tag {
+            font-size: 12.5px;
+            letter-spacing: 2.5px;
+            color: var(--orange);
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .ticket h3 {
+            font-size: 22px;
+            font-weight: 900;
+            margin-bottom: 18px;
+        }
+
+        .ticket-rows {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px 10px;
+            text-align: right;
+        }
+
+        .t-row {
+            background: rgba(14, 26, 46, 0.45);
+            border: 1px solid rgba(242, 232, 213, 0.1);
+            border-radius: 14px;
+            padding: 11px 14px;
+        }
+
+        .t-row .t-label {
+            display: block;
+            font-size: 12px;
+            color: var(--cream-dim);
+            margin-bottom: 2px;
+        }
+
+        .t-row .t-value {
+            font-size: 16px;
+            font-weight: 900;
+            color: var(--cream);
+        }
+
+        .t-row .t-value.orange { color: var(--orange); }
+
+        /* ===== כפתורי קישורים ===== */
+        .links-row {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 26px;
+        }
+
+        .calendar-btn {
+            display: block;
+            width: 100%;
+            padding: 17px;
+            border: none;
+            border-radius: 16px;
+            background: linear-gradient(135deg, var(--orange) 0%, var(--orange-deep) 100%);
+            color: #fff;
+            font-family: inherit;
+            font-size: 18px;
+            font-weight: 900;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+            box-shadow: 0 10px 26px rgba(211, 84, 0, 0.4);
+            transition: transform .12s, box-shadow .2s;
+        }
+
+        .calendar-btn:hover { transform: translateY(-2px); box-shadow: 0 14px 32px rgba(211, 84, 0, 0.5); }
+        .calendar-btn:active { transform: translateY(0); }
+
+        .ghost-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            border: 1.5px solid rgba(232, 135, 59, 0.55);
+            border-radius: 16px;
+            background: rgba(232, 135, 59, 0.08);
+            color: var(--orange);
+            font-family: inherit;
+            font-size: 16.5px;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+            transition: background .15s, transform .12s;
+        }
+
+        .ghost-btn:hover { background: rgba(232, 135, 59, 0.2); transform: translateY(-1px); }
+        .ghost-btn:active { transform: translateY(0); }
+
+        .motto {
+            margin-top: 26px;
+            font-size: 15px;
+            color: var(--cream);
+            font-weight: 500;
+        }
+
+        .footer {
+            margin-top: 34px;
+            font-size: 13px;
+            color: rgba(207, 196, 173, 0.55);
+            line-height: 1.8;
+        }
+
+        /* ===== קונפטי ===== */
+        #confettiCanvas {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        @media (max-width: 380px) {
+            .ticket-rows { grid-template-columns: 1fr; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .final-title { animation: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="lights" aria-hidden="true">
+        <div class="bulb"></div><div class="bulb"></div><div class="bulb"></div><div class="bulb"></div><div class="bulb"></div><div class="bulb"></div><div class="bulb"></div><div class="bulb"></div><div class="bulb"></div><div class="bulb"></div><div class="bulb"></div><div class="bulb"></div>
+    </div>
+
+    <canvas id="confettiCanvas" aria-hidden="true"></canvas>
+
+    <div class="wrap">
+        <img src="logo.png" alt="הפרתיה" class="logo">
+        <div class="brand">NOFEY PARTYING</div>
+
+        <div class="page-title">מסיבת סוף הקיץ של הפרתיה 🌅</div>
+        <div class="page-date">יום חמישי · 3.9 · 20:30</div>
+
+        <!-- ===== הדרמה ===== -->
+        <div class="stage show" id="stageDrama">
+            <div class="drama-card">
+                <div class="drama-inner" id="dramaInner">
+                    <span class="drama-emoji">🎟️</span>
+                    <div class="drama-title">בודקים כמה כרטיסים חינם נשארו...</div>
+                    <div class="meter-wrap">
+                        <div class="meter-label">
+                            <span>כרטיסים שנתפסו</span>
+                            <b><span id="takenCount">0</span> / 50</b>
+                        </div>
+                        <div class="meter"><div class="meter-fill" id="meterFill"></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== הפאנץ' ===== -->
+        <div class="stage" id="stageFinal">
+            <div class="final-title">וואלאק, אפשר לעשות משהו!! 🎉</div>
+            <div class="final-punch">הכניסה חינם לכולם. מה חשבתם 😏</div>
+            <p class="final-note">
+                אבל אם אתם כבר פה, אז יאללה —<br>
+                לפחות תכניסו את זה ליומן 👇
+            </p>
+
+            <div class="ticket">
+                <div class="ticket-tag">ADMIT: EVERYONE</div>
+                <h3>מסיבת סוף הקיץ של הפרתיה 🦌</h3>
+                <div class="ticket-rows">
+                    <div class="t-row">
+                        <span class="t-label">מתי</span>
+                        <span class="t-value">יום חמישי · 3.9</span>
+                    </div>
+                    <div class="t-row">
+                        <span class="t-label">שעה</span>
+                        <span class="t-value">20:30</span>
+                    </div>
+                    <div class="t-row">
+                        <span class="t-label">על העמדה</span>
+                        <span class="t-value">DJ NIV 🎧</span>
+                    </div>
+                    <div class="t-row">
+                        <span class="t-label">בבר</span>
+                        <span class="t-value">בר מיוחד 🍹</span>
+                    </div>
+                    <div class="t-row">
+                        <span class="t-label">כניסה</span>
+                        <span class="t-value orange">חינם. לכולם 🧡</span>
+                    </div>
+                    <div class="t-row">
+                        <span class="t-label">מספר כרטיס</span>
+                        <span class="t-value">51 😉</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="links-row">
+                <a class="calendar-btn" href="https://tinyurl.com/4t8snxyv" target="_blank" rel="noopener">שמרו לי ביומן Google 📅</a>
+                <a class="ghost-btn" href="party.ics">יומן אייפון / Outlook 🍎</a>
+                <button type="button" class="ghost-btn" id="shareBtn" onclick="sharePage()">תעבירו את זה לחבר׳ה 📤</button>
+                <a class="ghost-btn" href="https://bit.ly/whatsappub" target="_blank" rel="noopener">לקבוצת העדכונים של הפרתיה 📢</a>
+            </div>
+
+            <div class="motto">מקום טוב · אנשים טובים · עשייה טובה ♡</div>
+
+            <div class="footer">
+                הפרתיה · מסיבת סוף הקיץ · יום חמישי 3.9 · 20:30
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* ===== שלב 1: המד מתמלא עד 50 ===== */
+        window.addEventListener('load', () => {
+            setTimeout(runMeter, 800);
+        });
+
+        function runMeter() {
+            const countEl = document.getElementById('takenCount');
+            const fillEl = document.getElementById('meterFill');
+            const duration = 2400;
+            const start = performance.now();
+
+            function tick(now) {
+                const p = Math.min((now - start) / duration, 1);
+                const eased = 1 - Math.pow(1 - p, 3);
+                const n = Math.round(50 * eased);
+                countEl.textContent = n;
+                fillEl.style.width = (n * 2) + '%';
+                if (p < 1) requestAnimationFrame(tick);
+                else setTimeout(showSad, 900);
+            }
+            requestAnimationFrame(tick);
+        }
+
+        /* ===== שלב 2: ה-51 ===== */
+        function showSad() {
+            swapDrama(`
+                <span class="drama-emoji">😢</span>
+                <div class="drama-title">אויש...<br>אתם בדיוק <span class="accent">ה־51</span> :(</div>
+                <div class="drama-sub">הכרטיס האחרון נתפס ממש עכשיו.</div>
+            `);
+            setTimeout(showChecking, 3200);
+        }
+
+        /* ===== שלב 3: בודקים ===== */
+        function showChecking() {
+            swapDrama(`
+                <span class="drama-emoji">🤔</span>
+                <div class="drama-title">רגע, אני בודק אם אפשר לעשות משהו...</div>
+                <div class="spinner"></div>
+            `);
+            setTimeout(showFinal, 2800);
+        }
+
+        function swapDrama(html) {
+            const inner = document.getElementById('dramaInner');
+            inner.innerHTML = html;
+            inner.style.animation = 'none';
+            void inner.offsetWidth;
+            inner.style.animation = '';
+        }
+
+        /* ===== שלב 4: הפאנץ' ===== */
+        function showFinal() {
+            document.getElementById('stageDrama').classList.remove('show');
+            document.getElementById('stageFinal').classList.add('show');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            launchConfetti();
+        }
+
+        /* ===== שיתוף ===== */
+        async function sharePage() {
+            const shareBtn = document.getElementById('shareBtn');
+            const shareData = {
+                title: 'מסיבת סוף הקיץ של הפרתיה 🌅',
+                text: 'מסיבת סוף הקיץ של הפרתיה! 🦌 יום חמישי 3.9 · 20:30 · DJ NIV · בר מיוחד. והכניסה? תלחצו ותגלו 😏',
+                url: window.location.href
+            };
+            try {
+                if (navigator.share) {
+                    await navigator.share(shareData);
+                } else {
+                    await navigator.clipboard.writeText(shareData.text + '\n' + shareData.url);
+                    const original = shareBtn.textContent;
+                    shareBtn.textContent = 'הקישור הועתק! עכשיו תורכם 😉';
+                    setTimeout(() => { shareBtn.textContent = original; }, 2500);
+                }
+            } catch (err) {
+                // המשתמש ביטל את השיתוף — לא צריך לעשות כלום
+            }
+        }
+
+        /* ===== קונפטי ===== */
+        function launchConfetti() {
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+            const canvas = document.getElementById('confettiCanvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const colors = ['#E8873B', '#D35400', '#F2E8D5', '#ffd98a', '#ffffff'];
+            const pieces = [];
+            for (let i = 0; i < 160; i++) {
+                pieces.push({
+                    x: Math.random() * canvas.width,
+                    y: -20 - Math.random() * canvas.height * 0.6,
+                    w: 6 + Math.random() * 7,
+                    h: 8 + Math.random() * 8,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    vy: 2.2 + Math.random() * 3.2,
+                    vx: -1.4 + Math.random() * 2.8,
+                    rot: Math.random() * Math.PI * 2,
+                    vr: -0.12 + Math.random() * 0.24
+                });
+            }
+
+            const started = performance.now();
+            function frame(now) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                let alive = false;
+                for (const p of pieces) {
+                    p.y += p.vy;
+                    p.x += p.vx + Math.sin(p.y * 0.02) * 0.6;
+                    p.rot += p.vr;
+                    if (p.y < canvas.height + 30) alive = true;
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate(p.rot);
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+                    ctx.restore();
+                }
+                if (alive && now - started < 6000) requestAnimationFrame(frame);
+                else ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+            requestAnimationFrame(frame);
+        }
+    </script>
+</body>
+</html>
